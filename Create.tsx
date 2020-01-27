@@ -4,14 +4,15 @@ import { useMutation, Stack, Separator } from "./lib";
 
 import Links from "./Links";
 import { SchemaDefinition } from "@octant/per-form";
+import { IDispatcher, ITACallBacks } from "../typical-admin";
 
 interface Props {
-  dispatcher: any;
+  dispatcher: IDispatcher;
   match: any;
   history: any;
   name: Name;
   schemaDefinition: SchemaDefinition<any>;
-  callBacks?: any;
+  callBacks?: ITACallBacks;
 }
 
 const New: React.FC<Props> = ({
@@ -24,7 +25,7 @@ const New: React.FC<Props> = ({
 }) => {
   const newRef: React.RefObject<any> = createRef();
   const [isValid, setIsValid] = useState(false);
-  const [createItem] = useMutation(dispatcher.create, {
+  const [createItem] = useMutation(dispatcher.new, {
     onCompleted: data => {
       history.push(
         match.url.replace("new", `${data[`add${name.singular}`].id}/show`)

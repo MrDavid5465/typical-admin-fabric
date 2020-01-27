@@ -1,13 +1,14 @@
 import React from "react";
 import { Stack, Name, useQuery, List as DetailsList } from "./lib";
 import Links from "./Links";
+import { IDispatcher, DisplaySchema } from "../typical-admin";
 
 interface Props {
-  dispatcher: any;
+  dispatcher: IDispatcher;
   match: any;
   history: any;
   name: Name;
-  schemaDefinition: any;
+  schemaDefinition: DisplaySchema<any>;
   pageSize?: number;
 }
 

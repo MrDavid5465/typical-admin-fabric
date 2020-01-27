@@ -10,14 +10,16 @@ import {
 import { useMutation, useQuery } from "./lib";
 
 import Links from "./Links";
+import { IDispatcher, ITACallBacks } from "../typical-admin";
+import { SchemaDefinition } from "@octant/per-form";
 
 interface Props {
-  dispatcher: any;
+  dispatcher: IDispatcher;
   history: any;
   match: any;
   name: Name;
-  schemaDefinition: any;
-  callBacks?: any;
+  schemaDefinition: SchemaDefinition<any>;
+  callBacks?: ITACallBacks;
 }
 
 const Update: React.FC<Props> = ({
@@ -32,12 +34,12 @@ const Update: React.FC<Props> = ({
   const [isValid, setIsValid] = useState(false);
   const queryName = `get${name.singular}`;
 
-  const { data, error, loading } = useQuery(dispatcher.get, {
+  const { data, error, loading } = useQuery(dispatcher.show, {
     variables: { id }
   });
   const initialValues = !loading && !error && data[queryName];
 
-  const [updateItem] = useMutation(dispatcher.update, {
+  const [updateItem] = useMutation(dispatcher.edit, {
     onCompleted: data => {
       history.push(match.url.pathname.replace("edit", "show"));
       callBacks &&
@@ -45,7 +47,7 @@ const Update: React.FC<Props> = ({
         callBacks.edit(data[`add${name.singular}`]);
     },
     refetchQueries: [
-      { query: dispatcher.get, variables: { id } },
+      { query: dispatcher.show, variables: { id } },
       { query: dispatcher.list }
     ]
   });

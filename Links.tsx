@@ -1,11 +1,12 @@
 import React from "react";
 import { Link, Name } from "./lib";
 import { getStyle, Stack, Separator } from "./lib";
+import { IDispatcher } from "../typical-admin";
 
 interface Props {
   match: any;
   name: Name;
-  dispatcher: any;
+  dispatcher: IDispatcher;
 }
 
 const Links: React.FC<Props> = ({ match, name, dispatcher }) => {
@@ -20,7 +21,7 @@ const Links: React.FC<Props> = ({ match, name, dispatcher }) => {
   if (urls.show.test(match.url)) {
     return (
       <Stack horizontal tokens={{ childrenGap: 10 }}>
-        {dispatcher.update && (
+        {dispatcher.edit && (
           <>
             <Link
               className={style.link}
@@ -54,7 +55,7 @@ const Links: React.FC<Props> = ({ match, name, dispatcher }) => {
   } else if (urls.root.test(match.url)) {
     return (
       <Stack horizontal tokens={{ childrenGap: 10 }}>
-        {dispatcher.create && (
+        {dispatcher.new && (
           <>
             <Link className={style.link} to={`${match.url}/new`}>
               New

@@ -2,14 +2,15 @@ import React from "react";
 import Links from "./Links";
 import Delete from "./Delete";
 import { useQuery, Stack, Separator, Name } from "./lib";
+import { IDispatcher, ITACallBacks, DisplaySchema } from "../typical-admin";
 
 interface Props {
-  dispatcher: any;
+  dispatcher: IDispatcher;
   history: any;
   match: any;
   name: Name;
-  schemaDefinition: any;
-  callBacks?: any;
+  schemaDefinition: DisplaySchema<any>;
+  callBacks?: ITACallBacks;
 }
 
 const Show: React.FC<Props> = ({
@@ -22,7 +23,7 @@ const Show: React.FC<Props> = ({
 }) => {
   const id = match.params.id;
   const queryName = `get${name.singular}`;
-  const { data, error, loading } = useQuery(dispatcher.get, {
+  const { data, error, loading } = useQuery(dispatcher.show, {
     variables: { id }
   });
 
@@ -50,7 +51,7 @@ const Show: React.FC<Props> = ({
           </p>
         );
       })}
-      {dispatcher.remove && (
+      {dispatcher.delete && (
         <Delete
           history={history}
           id={id}
