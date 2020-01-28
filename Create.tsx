@@ -5,6 +5,7 @@ import { useMutation, Stack, Separator } from "./lib";
 import Links from "./Links";
 import { SchemaDefinition } from "@octant/per-form";
 import { IDispatcher, ITACallBacks } from "../typical-admin";
+import { getStyle } from "../denim";
 
 interface Props {
   dispatcher: IDispatcher;
@@ -49,21 +50,23 @@ const New: React.FC<Props> = ({
   function handleChange() {
     setIsValid(newRef.current.isValid);
   }
-
+  const style = getStyle();
   return (
     <Stack>
       <h5>New {name.singular}</h5>
-      <Form
-        ref={newRef}
-        name={"create"}
-        form={schemaDefinition}
-        onChange={handleChange}
-      />
-      <Stack horizontal tokens={{ childrenGap: 10 }}>
-        <DefaultButton onClick={handleReset}>Reset</DefaultButton>
-        <PrimaryButton onClick={handleCreate} disabled={!isValid}>
-          Submit
-        </PrimaryButton>
+      <Stack className={style.md}>
+        <Form
+          ref={newRef}
+          name={"create"}
+          form={schemaDefinition}
+          onChange={handleChange}
+        />
+        <Stack horizontal tokens={{ childrenGap: 10 }}>
+          <DefaultButton onClick={handleReset}>Reset</DefaultButton>
+          <PrimaryButton onClick={handleCreate} disabled={!isValid}>
+            Submit
+          </PrimaryButton>
+        </Stack>
       </Stack>
       <Separator />
       <Links match={match} name={name} dispatcher={dispatcher} />

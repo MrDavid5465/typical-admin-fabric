@@ -6,6 +6,11 @@ export interface Style {
   modalHeader: IStyle;
   modalBody: IStyle;
   sm: IStyle;
+  md: IStyle;
+  lg: IStyle;
+  xLg: IStyle;
+  xxLg: IStyle;
+  xxxLg: IStyle;
 }
 
 const style = (theme: ITheme) =>
@@ -17,6 +22,68 @@ const style = (theme: ITheme) =>
           maxWidth: 479
         }
       }
+    },
+    md: {
+      width: "100%",
+      selectors: {
+        "@media (min-width: 479px)": {
+          maxWidth: 479
+        },
+        "@media (min-width: 639px)": {
+          maxWidth: 639
+        }
+      }
+    },
+    lg: {
+      width: "100%",
+      selectors: {
+        "@media (min-width: 479px)": {
+          maxWidth: 479
+        },
+        "@media (min-width: 639px)": {
+          maxWidth: 639
+        },
+        "@media (min-width: 1023px)": {
+          maxWidth: 1023
+        }
+      }
+    },
+    xLg: {
+      width: "100%",
+      selectors: {
+        "@media (min-width: 479px)": {
+          maxWidth: 479
+        },
+        "@media (min-width: 639px)": {
+          maxWidth: 639
+        },
+        "@media (min-width: 1023px)": {
+          maxWidth: 1023
+        },
+        "@media (min-width: 1365px)": {
+          maxWidth: 1365
+        }
+      }
+    },
+    xxLg: {
+      width: "100%",
+      selectors: {
+        "@media (min-width: 479px)": {
+          maxWidth: 479
+        },
+        "@media (min-width: 639px)": {
+          maxWidth: 639
+        },
+        "@media (min-width: 1023px)": {
+          maxWidth: 1023
+        },
+        "@media (min-width: 1365px)": {
+          maxWidth: 1365
+        }
+      }
+    },
+    xxxLg: {
+      width: "100%"
     },
     link: {
       color: theme.semanticColors.link,

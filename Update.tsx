@@ -12,6 +12,7 @@ import { useMutation, useQuery } from "./lib";
 import Links from "./Links";
 import { IDispatcher, ITACallBacks } from "../typical-admin";
 import { SchemaDefinition } from "@octant/per-form";
+import { getStyle } from "../denim";
 
 interface Props {
   dispatcher: IDispatcher;
@@ -52,7 +53,7 @@ const Update: React.FC<Props> = ({
     ]
   });
   const editRef: React.RefObject<any> = createRef();
-
+  const style = getStyle();
   function handleReset() {
     editRef.current.reset();
   }
@@ -81,18 +82,20 @@ const Update: React.FC<Props> = ({
   return (
     <Stack>
       <h4>Edit {name.singular}</h4>
-      <Form
-        ref={editRef}
-        name={"update"}
-        form={schemaDefinition}
-        initialValues={initialValues}
-        onChange={handleChange}
-      />
-      <Stack horizontal tokens={{ childrenGap: 10 }}>
-        <DefaultButton onClick={handleReset}>Reset</DefaultButton>
-        <PrimaryButton onClick={handleSubmit} disabled={!isValid}>
-          Submit
-        </PrimaryButton>
+      <Stack className={style.md}>
+        <Form
+          ref={editRef}
+          name={"update"}
+          form={schemaDefinition}
+          initialValues={initialValues}
+          onChange={handleChange}
+        />
+        <Stack horizontal tokens={{ childrenGap: 10 }}>
+          <DefaultButton onClick={handleReset}>Reset</DefaultButton>
+          <PrimaryButton onClick={handleSubmit} disabled={!isValid}>
+            Submit
+          </PrimaryButton>
+        </Stack>
       </Stack>
       <Separator />
       <Links match={match} name={name} dispatcher={dispatcher} />
