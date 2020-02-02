@@ -42,7 +42,7 @@ const Update: React.FC<Props> = ({
 
   const [updateItem] = useMutation(dispatcher.edit, {
     onCompleted: data => {
-      history.push(match.url.pathname.replace("edit", "show"));
+      history.push(match.url.replace("edit", "show"));
       callBacks &&
         callBacks.edit &&
         callBacks.edit(data[`add${name.singular}`]);
