@@ -62,10 +62,10 @@ const New: React.FC<Props> = ({
           onChange={handleChange}
         />
         <Stack horizontal tokens={{ childrenGap: 10 }}>
-          <DefaultButton onClick={handleReset}>Reset</DefaultButton>
           <PrimaryButton onClick={handleCreate} disabled={!isValid}>
             Submit
           </PrimaryButton>
+          <DefaultButton onClick={handleReset}>Reset</DefaultButton>
         </Stack>
       </Stack>
       <Separator />
