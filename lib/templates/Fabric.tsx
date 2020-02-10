@@ -79,7 +79,7 @@ export default function Raw(props: any): ReactElement {
     onFocus && onFocus(name);
   }
   function handleSelect(e: any, option: any) {
-    onChange(name, option.key);
+    option !== undefined && onChange(name, option.key);
   }
   function handleSelectDate(date: Date | null | undefined) {
     (date &&
