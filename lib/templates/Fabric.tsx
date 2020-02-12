@@ -124,6 +124,7 @@ export default function Raw(props: any): ReactElement {
               name={name}
               onChange={handleCheck}
               onFocus={handleFocus}
+              {...rest}
             />
             <Stack className={style.errors}>
               <Feedback
@@ -146,6 +147,7 @@ export default function Raw(props: any): ReactElement {
                   i: number
                 ) => ({ key: optValue, text })
               )}
+              {...rest}
             />
             <Stack className={style.errors}>
               <Feedback
@@ -170,6 +172,7 @@ export default function Raw(props: any): ReactElement {
                   i: number
                 ) => ({ key: optValue, text })
               )}
+              {...rest}
             >
               {}
             </Dropdown>
@@ -197,6 +200,7 @@ export default function Raw(props: any): ReactElement {
                   i: number
                 ) => ({ key: optValue, text })
               )}
+              {...rest}
             >
               {}
             </Dropdown>
@@ -245,6 +249,7 @@ export default function Raw(props: any): ReactElement {
                       i: number
                     ) => ({ key: i, text, value: optValue })
                   )}
+                {...rest}
               />
               <IconButton disabled={option.value === ""} onClick={handleAdd}>
                 <Icon iconName={"Add"}></Icon>
@@ -272,6 +277,7 @@ export default function Raw(props: any): ReactElement {
               onFocus={handleFocus}
               placeholder={placeholder}
               allowTextInput={true}
+              {...rest}
             />
             <Stack className={style.errors}>
               <Feedback
@@ -299,6 +305,7 @@ export default function Raw(props: any): ReactElement {
                   i: number
                 ) => ({ key: optValue, text, value: optValue })
               )}
+              {...rest}
             />
             <Stack className={style.errors}>
               <Feedback
@@ -318,6 +325,7 @@ export default function Raw(props: any): ReactElement {
               onChange={handleChange}
               onFocus={handleFocus}
               value={value}
+              {...rest}
             />
             <Stack className={style.errors}>
               <Feedback
