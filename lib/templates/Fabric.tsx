@@ -14,7 +14,7 @@ import {
   mergeStyleSets,
   DatePicker
 } from "office-ui-fabric-react";
-import { format } from "date-fns";
+import { format, parseISO } from "date-fns";
 interface IndexableObject {
   [key: string]: any;
 }
@@ -82,11 +82,7 @@ export default function Raw(props: any): ReactElement {
     option !== undefined && onChange(name, option.key);
   }
   function handleSelectDate(date: Date | null | undefined) {
-    (date &&
-      date.getHours() !== 0 &&
-      date.setHours(date.getHours() + date.getTimezoneOffset() / 60)) ||
-      new Date();
-    onChange(name, (date && new Date(date.toLocaleString())) || "");
+    date && onChange(name, new Date(format(date, "yyyy-MM-dd'T'00:00:00")));
   }
 
   function handleOptionChange(e: any, option: any) {
@@ -112,7 +108,9 @@ export default function Raw(props: any): ReactElement {
     );
     setOption({ index: -1, value: "" });
   }
-
+  function parseDate(val: any) {
+    return (val && typeof val === "string" ? parseISO(val) : val) || new Date();
+  }
   function choose() {
     switch (type) {
       case "checkbox":
@@ -270,10 +268,8 @@ export default function Raw(props: any): ReactElement {
             <DatePicker
               label={label}
               onSelectDate={handleSelectDate}
-              formatDate={(value: any) =>
-                format(new Date(value || new Date()), "yyyy-MM-dd")
-              }
-              value={value === "" ? undefined : new Date(value || new Date())}
+              formatDate={(val: any) => format(parseDate(val), "yyyy-MM-dd")}
+              value={value === "" ? undefined : parseDate(value)}
               onFocus={handleFocus}
               placeholder={placeholder}
               allowTextInput={true}
@@ -307,6 +303,26 @@ export default function Raw(props: any): ReactElement {
               )}
               {...rest}
             />
+            <Stack className={style.errors}>
+              <Feedback
+                and={[!isValid, isTouched]}
+                errors={errors}
+                dirty={isDirty}
+              />
+            </Stack>
+          </Stack>
+        );
+      case "timetoday":
+        return (
+          <Stack>
+            <Stack horizontal>
+              <TextField
+                label={label}
+                name={`${name}-hour`}
+                value={value.getHours}
+              />
+              <TextField />
+            </Stack>
             <Stack className={style.errors}>
               <Feedback
                 and={[!isValid, isTouched]}
