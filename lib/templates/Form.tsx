@@ -14,6 +14,7 @@ interface Props<T> {
   initialValues?: IForm;
   name: string;
   onChange?: (name: string, values: any) => void;
+  fieldProps?: { [key: string]: any };
 }
 export interface IFormRef {
   isValid: boolean;
@@ -23,7 +24,14 @@ export interface IFormRef {
 }
 
 function SubForm<T>(
-  { initialValues, form, name, onChange, converters = {} }: Props<T>,
+  {
+    initialValues,
+    form,
+    name,
+    onChange,
+    converters = {},
+    fieldProps
+  }: Props<T>,
   ref: Ref<any>
 ): ReactElement {
   const {
@@ -67,6 +75,7 @@ function SubForm<T>(
       Template={Field}
       touched={touched}
       values={values}
+      fieldProps={fieldProps}
     />
   );
 }
