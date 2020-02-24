@@ -114,10 +114,11 @@ export default function Raw(props: any): ReactElement {
     return (val && typeof val === "string" ? parseISO(val) : val) || new Date();
   }
   function handleTimeChange(hour?: number, minute?: number) {
+    console.log(value);
     onChange(
       name,
       new Date(
-        `${format(parseDate(value), "yyyy-MM-dd")}T${
+        `${format(parseDate(new Date()), "yyyy-MM-dd")}T${
           hour ? hour : (value && value.getHours()) || new Date().getHours()
         }:${
           minute
@@ -329,28 +330,38 @@ export default function Raw(props: any): ReactElement {
           </Stack>
         );
       case "timetoday":
-        console.log(options);
         var i;
         const hours = [];
         const minutes = [];
         for (i = 0; i < 60; i++) {
-          i < 24 &&
-            hours.push({ key: i, text: `${i % 12 <= 12 ? (i % 12) + 1 : i}` });
-          minutes.push({ key: 1, text: `${i}` });
+          i === 0 && hours.push({ key: i, text: "12" });
+          i > 0 && i < 12 && hours.push({ key: i, text: `${i}` });
+          i < 10
+            ? minutes.push({ key: i, text: `0${i}` })
+            : minutes.push({ key: i, text: `${i}` });
         }
+        const hour = value ? value.getHours() % 12 : 0;
+        const minute = value ? value.getMinutes() : 0;
+        const ampm = value ? (value.getHours() < 12 ? "AM" : "PM") : "AM";
         return (
           <Stack>
             <Label>{label}</Label>
-            <Stack horizontal>
+            <Stack horizontal tokens={{ childrenGap: "0.77em" }}>
               <ComboBox
-                selectedKey={(value && value.getHours()) || ""}
-                options={hours}
+                selectedKey={hour}
+                options={hours.sort((a, b) =>
+                  parseInt(a.text) > parseInt(b.text) ? 1 : -1
+                )}
                 allowFreeform
                 autoComplete={"on"}
-                onChange={(e: any, option: any) => handleTimeChange(option.key)}
+                onChange={(e: any, option: any) => {
+                  ampm === "AM"
+                    ? handleTimeChange(option.key)
+                    : handleTimeChange(option.key + 12);
+                }}
               />
               <ComboBox
-                selectedKey={(value && value.getMinutes()) || ""}
+                selectedKey={minute}
                 options={
                   options.length > 0
                     ? options.map((o: any) => ({
@@ -364,6 +375,19 @@ export default function Raw(props: any): ReactElement {
                 onChange={(e: any, option: any) =>
                   handleTimeChange(undefined, option.key)
                 }
+              />
+              <ComboBox
+                selectedKey={ampm}
+                options={[
+                  { key: "AM", text: "AM" },
+                  { key: "PM", text: "PM" }
+                ]}
+                disabled={(rest && rest.disabled) || !value}
+                onChange={(e: any, option: any) => {
+                  option.key === "AM"
+                    ? handleTimeChange(value.getHours() % 12)
+                    : handleTimeChange((value.getHours() % 12) + 12);
+                }}
               />
             </Stack>
             <Stack className={style.errors}>

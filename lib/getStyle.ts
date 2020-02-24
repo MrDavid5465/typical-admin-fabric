@@ -1,5 +1,5 @@
 import { IStyle } from "@uifabric/styling";
-import { ITheme, FontSizes, FontWeights } from "office-ui-fabric-react";
+import { ITheme, FontWeights } from "office-ui-fabric-react";
 
 export interface Style {
   link: IStyle;
@@ -211,7 +211,7 @@ const style = (theme: ITheme) =>
       borderTop: `0.25em solid ${theme.palette.themePrimary}`,
       color: theme.palette.neutralPrimary,
       display: "flex",
-      fontSize: FontSizes.xLarge,
+      fontSize: "1.5em",
       alignItems: "center",
       fontWeight: parseInt(FontWeights.semibold.toString()),
       padding: "0.924em 0.924em 1.078em 1.848em"
