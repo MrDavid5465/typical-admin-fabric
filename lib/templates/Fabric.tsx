@@ -12,11 +12,9 @@ import {
   Dropdown,
   getTheme,
   mergeStyleSets,
-  DatePicker,
-  SpinButton
+  DatePicker
 } from "office-ui-fabric-react";
 import { format, parseISO } from "date-fns";
-import { addMinutes } from "date-fns/esm";
 interface IndexableObject {
   [key: string]: any;
 }
@@ -113,16 +111,18 @@ export default function Raw(props: any): ReactElement {
   function parseDate(val: any) {
     return (val && typeof val === "string" ? parseISO(val) : val) || new Date();
   }
-  function handleTimeChange(hour?: number, minute?: number) {
-    const vhour = value ? value.getHours() : 0;
-    const vminute = value ? value.getMinutes() : 0;
-    console.log(value);
+  function handleTimeChange(hour: number, minute: number) {
+    const date = new Date();
+
     onChange(
       name,
       new Date(
-        `${format(parseDate(new Date()), "yyyy-MM-dd")}T${
-          hour ? hour : vhour
-        }:${minute ? minute : vminute}:00`
+        date.getFullYear(),
+        date.getMonth(),
+        date.getDate(),
+        hour,
+        minute,
+        0
       )
     );
   }
@@ -347,31 +347,50 @@ export default function Raw(props: any): ReactElement {
             <Stack horizontal tokens={{ childrenGap: "0.77em" }}>
               <ComboBox
                 selectedKey={hour}
-                options={hours.sort((a, b) =>
-                  parseInt(a.text) > parseInt(b.text) ? 1 : -1
-                )}
+                options={
+                  rest.hourOptions?.length > 0
+                    ? rest.hourOptions
+                        .map((o: any) => ({
+                          key: o.value,
+                          text: o.text
+                        }))
+                        .sort((a: any, b: any) =>
+                          parseInt(a.text) > parseInt(b.text) ? 1 : -1
+                        )
+                    : hours.sort((a, b) =>
+                        parseInt(a.text) > parseInt(b.text) ? 1 : -1
+                      )
+                }
                 allowFreeform
+                disabled={rest.disabled}
                 autoComplete={"on"}
                 onChange={(e: any, option: any) => {
                   ampm === "AM"
-                    ? handleTimeChange(option.key)
-                    : handleTimeChange(option.key + 12);
+                    ? handleTimeChange(option.key, minute)
+                    : handleTimeChange(option.key + 12, minute);
                 }}
               />
               <ComboBox
                 selectedKey={minute}
                 options={
-                  options.length > 0
-                    ? options.map((o: any) => ({
-                        key: o.value,
-                        text: o.text
-                      }))
-                    : minutes
+                  rest.minuteOptions?.length > 0
+                    ? rest.minuteOptions
+                        .map((o: any) => ({
+                          key: o.value,
+                          text: o.text
+                        }))
+                        .sort((a: any, b: any) =>
+                          parseInt(a.text) > parseInt(b.text) ? 1 : -1
+                        )
+                    : minutes.sort((a: any, b: any) =>
+                        parseInt(a.text) > parseInt(b.text) ? 1 : -1
+                      )
                 }
                 allowFreeform
+                disabled={rest.disabled}
                 autoComplete={"on"}
                 onChange={(e: any, option: any) =>
-                  handleTimeChange(undefined, option.key)
+                  handleTimeChange(hour, option.key)
                 }
               />
               <ComboBox
@@ -383,8 +402,8 @@ export default function Raw(props: any): ReactElement {
                 disabled={(rest && rest.disabled) || !value}
                 onChange={(e: any, option: any) => {
                   option.key === "AM"
-                    ? handleTimeChange(hour)
-                    : handleTimeChange(hour + 12);
+                    ? handleTimeChange(hour, minute)
+                    : handleTimeChange(hour + 12, minute);
                 }}
               />
             </Stack>
