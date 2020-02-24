@@ -20,7 +20,7 @@ const Links: React.FC<Props> = ({ match, name, dispatcher }) => {
 
   if (urls.show.test(match.url)) {
     return (
-      <Stack horizontal tokens={{ childrenGap: 10 }}>
+      <Stack horizontal tokens={{ childrenGap: "0.77em" }}>
         {dispatcher.edit && (
           <>
             <Link
@@ -54,7 +54,7 @@ const Links: React.FC<Props> = ({ match, name, dispatcher }) => {
     );
   } else if (urls.root.test(match.url)) {
     return (
-      <Stack horizontal tokens={{ childrenGap: 10 }}>
+      <Stack horizontal tokens={{ childrenGap: "0.77em" }}>
         {dispatcher.new && (
           <>
             <Link className={style.link} to={`${match.url}/new`}>

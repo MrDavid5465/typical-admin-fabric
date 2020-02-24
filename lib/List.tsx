@@ -87,7 +87,7 @@ const List: React.FC<Props> = ({
   });
   return (
     <>
-      <Stack horizontal tokens={{ childrenGap: 10 }}>
+      <Stack horizontal tokens={{ childrenGap: "0.77em" }}>
         {Object.entries(schema)
           .filter(([k, s]: any) => s.options && s.options.filterable)
           .map(([k, v]: any, i: number) =>

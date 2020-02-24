@@ -61,7 +61,7 @@ const New: React.FC<Props> = ({
           form={schemaDefinition}
           onChange={handleChange}
         />
-        <Stack horizontal tokens={{ childrenGap: 10 }}>
+        <Stack horizontal tokens={{ childrenGap: "0.77em" }}>
           <PrimaryButton onClick={handleCreate} disabled={!isValid}>
             Submit
           </PrimaryButton>

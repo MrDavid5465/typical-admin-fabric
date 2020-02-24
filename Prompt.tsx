@@ -19,7 +19,7 @@ const Prompt: React.FC<Props> = ({ isOpen, message, toggle }) => {
         horizontal
         horizontalAlign={"end"}
         className={style.modalBody}
-        tokens={{ childrenGap: 10 }}
+        tokens={{ childrenGap: "0.77em" }}
       >
         <PrimaryButton onClick={() => toggle(true)} text="Yes" />
         <DefaultButton onClick={() => toggle(false)} text="No" />

@@ -12,9 +12,11 @@ import {
   Dropdown,
   getTheme,
   mergeStyleSets,
-  DatePicker
+  DatePicker,
+  SpinButton
 } from "office-ui-fabric-react";
 import { format, parseISO } from "date-fns";
+import { addMinutes } from "date-fns/esm";
 interface IndexableObject {
   [key: string]: any;
 }
@@ -110,6 +112,20 @@ export default function Raw(props: any): ReactElement {
   }
   function parseDate(val: any) {
     return (val && typeof val === "string" ? parseISO(val) : val) || new Date();
+  }
+  function handleTimeChange(hour?: number, minute?: number) {
+    onChange(
+      name,
+      new Date(
+        `${format(parseDate(value), "yyyy-MM-dd")}T${
+          hour ? hour : (value && value.getHours()) || new Date().getHours()
+        }:${
+          minute
+            ? minute
+            : (value && value.getMinutes()) || new Date().getMinutes()
+        }:00`
+      )
+    );
   }
   function choose() {
     switch (type) {
@@ -313,15 +329,42 @@ export default function Raw(props: any): ReactElement {
           </Stack>
         );
       case "timetoday":
+        console.log(options);
+        var i;
+        const hours = [];
+        const minutes = [];
+        for (i = 0; i < 60; i++) {
+          i < 24 &&
+            hours.push({ key: i, text: `${i % 12 <= 12 ? (i % 12) + 1 : i}` });
+          minutes.push({ key: 1, text: `${i}` });
+        }
         return (
           <Stack>
+            <Label>{label}</Label>
             <Stack horizontal>
-              <TextField
-                label={label}
-                name={`${name}-hour`}
-                value={value.getHours}
+              <ComboBox
+                selectedKey={(value && value.getHours()) || ""}
+                options={hours}
+                allowFreeform
+                autoComplete={"on"}
+                onChange={(e: any, option: any) => handleTimeChange(option.key)}
               />
-              <TextField />
+              <ComboBox
+                selectedKey={(value && value.getMinutes()) || ""}
+                options={
+                  options.length > 0
+                    ? options.map((o: any) => ({
+                        key: o.value,
+                        text: o.text
+                      }))
+                    : minutes
+                }
+                allowFreeform
+                autoComplete={"on"}
+                onChange={(e: any, option: any) =>
+                  handleTimeChange(undefined, option.key)
+                }
+              />
             </Stack>
             <Stack className={style.errors}>
               <Feedback

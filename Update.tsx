@@ -90,7 +90,7 @@ const Update: React.FC<Props> = ({
           initialValues={initialValues}
           onChange={handleChange}
         />
-        <Stack horizontal tokens={{ childrenGap: 10 }}>
+        <Stack horizontal tokens={{ childrenGap: "0.77em" }}>
           <PrimaryButton onClick={handleSubmit} disabled={!isValid}>
             Submit
           </PrimaryButton>
