@@ -114,17 +114,15 @@ export default function Raw(props: any): ReactElement {
     return (val && typeof val === "string" ? parseISO(val) : val) || new Date();
   }
   function handleTimeChange(hour?: number, minute?: number) {
+    const vhour = value ? value.getHours() : 0;
+    const vminute = value ? value.getMinutes() : 0;
     console.log(value);
     onChange(
       name,
       new Date(
         `${format(parseDate(new Date()), "yyyy-MM-dd")}T${
-          hour ? hour : (value && value.getHours()) || new Date().getHours()
-        }:${
-          minute
-            ? minute
-            : (value && value.getMinutes()) || new Date().getMinutes()
-        }:00`
+          hour ? hour : vhour
+        }:${minute ? minute : vminute}:00`
       )
     );
   }
@@ -385,8 +383,8 @@ export default function Raw(props: any): ReactElement {
                 disabled={(rest && rest.disabled) || !value}
                 onChange={(e: any, option: any) => {
                   option.key === "AM"
-                    ? handleTimeChange(value.getHours() % 12)
-                    : handleTimeChange((value.getHours() % 12) + 12);
+                    ? handleTimeChange(hour)
+                    : handleTimeChange(hour + 12);
                 }}
               />
             </Stack>
