@@ -338,9 +338,13 @@ export default function Raw(props: any): ReactElement {
             ? minutes.push({ key: i, text: `0${i}` })
             : minutes.push({ key: i, text: `${i}` });
         }
-        const hour = value ? value.getHours() % 12 : 0;
-        const minute = value ? value.getMinutes() : 0;
-        const ampm = value ? (value.getHours() < 12 ? "AM" : "PM") : "AM";
+        const hour = value ? new Date(value).getHours() % 12 : 0;
+        const minute = value ? new Date(value).getMinutes() : 0;
+        const ampm = value
+          ? new Date(value).getHours() < 12
+            ? "AM"
+            : "PM"
+          : "AM";
         return (
           <Stack>
             <Label>{label}</Label>
