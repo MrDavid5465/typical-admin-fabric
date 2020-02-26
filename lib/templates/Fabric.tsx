@@ -1,5 +1,5 @@
-import React, { ReactElement, useState } from "react";
-import { withConditionalRender } from "@octant/per-form";
+import React, { ReactElement, useState } from 'react';
+import { withConditionalRender } from '@octant/per-form';
 import {
   Stack,
   Checkbox,
@@ -12,9 +12,9 @@ import {
   Dropdown,
   getTheme,
   mergeStyleSets,
-  DatePicker
-} from "office-ui-fabric-react";
-import { format, parseISO } from "date-fns";
+  DatePicker,
+} from 'office-ui-fabric-react';
+import { format, parseISO } from 'date-fns';
 interface IndexableObject {
   [key: string]: any;
 }
@@ -22,12 +22,12 @@ const getStyle = () => {
   const theme = getTheme();
   return mergeStyleSets({
     errors: {
-      minHeight: "1.32em",
-      fontSize: "0.8em",
-      marginBottom: "0.5em"
+      minHeight: '1.32em',
+      fontSize: '0.8em',
+      marginBottom: '0.5em',
     },
     error: { color: theme.semanticColors.errorText },
-    hint: { color: theme.palette.themePrimary }
+    hint: { color: theme.palette.themePrimary },
   });
 };
 const Feedback = withConditionalRender(
@@ -58,7 +58,7 @@ export default function Raw(props: any): ReactElement {
     options: o,
     ...rest
   }: any = props;
-  const [option, setOption] = useState({ index: -1, value: "" });
+  const [option, setOption] = useState({ index: -1, value: '' });
   const options = props.options ? props.options : [];
   const isValid: boolean = errors ? errors.length === 0 : true;
   const isDirty: boolean = dirty ? dirty : false;
@@ -75,17 +75,17 @@ export default function Raw(props: any): ReactElement {
     onChange(name, checked);
   }
 
-  function handleFocus(e: any) {
+  function handleFocus(_: any) {
     onFocus && onFocus(name);
   }
-  function handleSelect(e: any, option: any) {
+  function handleSelect(_: any, option: any) {
     option !== undefined && onChange(name, option.key);
   }
   function handleSelectDate(date: Date | null | undefined) {
     date && onChange(name, new Date(format(date, "yyyy-MM-dd'T'00:00:00")));
   }
 
-  function handleOptionChange(e: any, option: any) {
+  function handleOptionChange(_: any, option: any) {
     setOption({ index: option.key, value: option.value });
   }
   function handleAdd() {
@@ -93,10 +93,10 @@ export default function Raw(props: any): ReactElement {
       name,
       [
         ...value,
-        options.find((o: any) => option.value === o.value)?.value
+        options.find((o: any) => option.value === o.value)?.value,
       ].sort((a, b) => (a.toLowerCase() > b.toLowerCase() ? 1 : -1))
     );
-    setOption({ index: -1, value: "" });
+    setOption({ index: -1, value: '' });
   }
   function handleRemove(e: any) {
     const target: IndexableObject = e.currentTarget;
@@ -106,10 +106,10 @@ export default function Raw(props: any): ReactElement {
         .filter((v: any) => v !== target.id)
         .sort((a: any, b: any) => (a.toLowerCase() > b.toLowerCase() ? 1 : -1))
     );
-    setOption({ index: -1, value: "" });
+    setOption({ index: -1, value: '' });
   }
   function parseDate(val: any) {
-    return (val && typeof val === "string" ? parseISO(val) : val) || new Date();
+    return (val && typeof val === 'string' ? parseISO(val) : val) || new Date();
   }
   function handleTimeChange(hour: number, minute: number) {
     const date = new Date();
@@ -128,7 +128,7 @@ export default function Raw(props: any): ReactElement {
   }
   function choose() {
     switch (type) {
-      case "checkbox":
+      case 'checkbox':
         return (
           <Stack className={rest.className}>
             <Checkbox
@@ -148,7 +148,7 @@ export default function Raw(props: any): ReactElement {
             </Stack>
           </Stack>
         );
-      case "radio":
+      case 'radio':
         return (
           <Stack className={rest.className}>
             <ChoiceGroup
@@ -157,7 +157,7 @@ export default function Raw(props: any): ReactElement {
               options={options.map(
                 (
                   { text, value: optValue }: { text: string; value: any },
-                  i: number
+                  _: number
                 ) => ({ key: optValue, text })
               )}
               {...rest}
@@ -171,7 +171,7 @@ export default function Raw(props: any): ReactElement {
             </Stack>
           </Stack>
         );
-      case "select":
+      case 'select':
         return (
           <Stack className={rest.className}>
             <Dropdown
@@ -182,7 +182,7 @@ export default function Raw(props: any): ReactElement {
               options={options.map(
                 (
                   { text, value: optValue }: { text: string; value: any },
-                  i: number
+                  _: number
                 ) => ({ key: optValue, text })
               )}
               {...rest}
@@ -198,7 +198,7 @@ export default function Raw(props: any): ReactElement {
             </Stack>
           </Stack>
         );
-      case "multi-select":
+      case 'multi-select':
         return (
           <Stack className={rest.className}>
             <Dropdown
@@ -210,7 +210,7 @@ export default function Raw(props: any): ReactElement {
               options={options.map(
                 (
                   { text, value: optValue }: { text: string; value: any },
-                  i: number
+                  _: number
                 ) => ({ key: optValue, text })
               )}
               {...rest}
@@ -226,7 +226,7 @@ export default function Raw(props: any): ReactElement {
             </Stack>
           </Stack>
         );
-      case "picker":
+      case 'picker':
         return (
           <Stack className={rest.className}>
             <Stack>
@@ -236,12 +236,12 @@ export default function Raw(props: any): ReactElement {
                   <Stack
                     key={i}
                     horizontal
-                    horizontalAlign={"space-between"}
-                    verticalAlign={"center"}
+                    horizontalAlign={'space-between'}
+                    verticalAlign={'center'}
                   >
                     {options.find((o: any) => o.value === r)?.text}
                     <IconButton id={r} onClick={handleRemove}>
-                      <Icon iconName={"Remove"}></Icon>
+                      <Icon iconName={'Remove'}></Icon>
                     </IconButton>
                   </Stack>
                 ))}
@@ -249,7 +249,7 @@ export default function Raw(props: any): ReactElement {
             <Stack horizontal>
               <ComboBox
                 allowFreeform
-                autoComplete={"on"}
+                autoComplete={'on'}
                 selectedKey={option.index}
                 onChange={handleOptionChange}
                 onFocus={handleFocus}
@@ -264,8 +264,8 @@ export default function Raw(props: any): ReactElement {
                   )}
                 {...rest}
               />
-              <IconButton disabled={option.value === ""} onClick={handleAdd}>
-                <Icon iconName={"Add"}></Icon>
+              <IconButton disabled={option.value === ''} onClick={handleAdd}>
+                <Icon iconName={'Add'}></Icon>
               </IconButton>
             </Stack>
             <Stack className={style.errors}>
@@ -277,14 +277,14 @@ export default function Raw(props: any): ReactElement {
             </Stack>
           </Stack>
         );
-      case "date":
+      case 'date':
         return (
           <Stack className={rest.className}>
             <DatePicker
               label={label}
               onSelectDate={handleSelectDate}
-              formatDate={(val: any) => format(parseDate(val), "yyyy-MM-dd")}
-              value={value === "" ? undefined : parseDate(value)}
+              formatDate={(val: any) => format(parseDate(val), 'yyyy-MM-dd')}
+              value={value === '' ? undefined : parseDate(value)}
               onFocus={handleFocus}
               placeholder={placeholder}
               allowTextInput={true}
@@ -299,13 +299,13 @@ export default function Raw(props: any): ReactElement {
             </Stack>
           </Stack>
         );
-      case "combobox":
+      case 'combobox':
         return (
           <Stack>
             <ComboBox
               label={label}
               allowFreeform
-              autoComplete={"on"}
+              autoComplete={'on'}
               selectedKey={value}
               onChange={handleSelect}
               onFocus={handleFocus}
@@ -313,7 +313,7 @@ export default function Raw(props: any): ReactElement {
               options={options.map(
                 (
                   { text, value: optValue }: { text: string; value: any },
-                  i: number
+                  _: number
                 ) => ({ key: optValue, text, value: optValue })
               )}
               {...rest}
@@ -327,12 +327,12 @@ export default function Raw(props: any): ReactElement {
             </Stack>
           </Stack>
         );
-      case "timetoday":
+      case 'timetoday':
         var i;
         const hours = [];
         const minutes = [];
         for (i = 0; i < 60; i++) {
-          i === 0 && hours.push({ key: i, text: "12" });
+          i === 0 && hours.push({ key: i, text: '12' });
           i > 0 && i < 12 && hours.push({ key: i, text: `${i}` });
           i < 10
             ? minutes.push({ key: i, text: `0${i}` })
@@ -342,13 +342,13 @@ export default function Raw(props: any): ReactElement {
         const minute = value ? new Date(value).getMinutes() : 0;
         const ampm = value
           ? new Date(value).getHours() < 12
-            ? "AM"
-            : "PM"
-          : "AM";
+            ? 'AM'
+            : 'PM'
+          : 'AM';
         return (
           <Stack>
             <Label>{label}</Label>
-            <Stack horizontal tokens={{ childrenGap: "0.77em" }}>
+            <Stack horizontal tokens={{ childrenGap: '0.77em' }}>
               <ComboBox
                 selectedKey={hour}
                 options={
@@ -356,7 +356,7 @@ export default function Raw(props: any): ReactElement {
                     ? rest.hourOptions
                         .map((o: any) => ({
                           key: o.value,
-                          text: o.text
+                          text: o.text,
                         }))
                         .sort((a: any, b: any) =>
                           parseInt(a.text) > parseInt(b.text) ? 1 : -1
@@ -367,9 +367,9 @@ export default function Raw(props: any): ReactElement {
                 }
                 allowFreeform
                 disabled={rest.disabled}
-                autoComplete={"on"}
-                onChange={(e: any, option: any) => {
-                  ampm === "AM"
+                autoComplete={'on'}
+                onChange={(_: any, option: any) => {
+                  ampm === 'AM'
                     ? handleTimeChange(option.key, minute)
                     : handleTimeChange(option.key + 12, minute);
                 }}
@@ -381,7 +381,7 @@ export default function Raw(props: any): ReactElement {
                     ? rest.minuteOptions
                         .map((o: any) => ({
                           key: o.value,
-                          text: o.text
+                          text: o.text,
                         }))
                         .sort((a: any, b: any) =>
                           parseInt(a.text) > parseInt(b.text) ? 1 : -1
@@ -392,20 +392,20 @@ export default function Raw(props: any): ReactElement {
                 }
                 allowFreeform
                 disabled={rest.disabled}
-                autoComplete={"on"}
-                onChange={(e: any, option: any) =>
+                autoComplete={'on'}
+                onChange={(_: any, option: any) =>
                   handleTimeChange(hour, option.key)
                 }
               />
               <ComboBox
                 selectedKey={ampm}
                 options={[
-                  { key: "AM", text: "AM" },
-                  { key: "PM", text: "PM" }
+                  { key: 'AM', text: 'AM' },
+                  { key: 'PM', text: 'PM' },
                 ]}
                 disabled={(rest && rest.disabled) || !value}
-                onChange={(e: any, option: any) => {
-                  option.key === "AM"
+                onChange={(_: any, option: any) => {
+                  option.key === 'AM'
                     ? handleTimeChange(hour, minute)
                     : handleTimeChange(hour + 12, minute);
                 }}

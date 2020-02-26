@@ -1,12 +1,12 @@
-import React, { useEffect, forwardRef, ReactElement, Ref } from "react";
+import React, { useEffect, forwardRef, ReactElement, Ref } from 'react';
 
-import Field from "./Fabric";
+import Field from './Fabric';
 import useForm, {
   FormWrapper,
   SchemaDefinition,
   IForm,
-  IConverters
-} from "@octant/per-form";
+  IConverters,
+} from '@octant/per-form';
 
 interface Props<T> {
   converters?: IConverters;
@@ -30,7 +30,7 @@ function SubForm<T>(
     name,
     onChange,
     converters = {},
-    fieldProps
+    fieldProps,
   }: Props<T>,
   ref: Ref<any>
 ): ReactElement {
@@ -44,12 +44,12 @@ function SubForm<T>(
     schema,
     submit: submitForm,
     touched,
-    values
+    values,
   } = useForm({
     converters,
     name,
     passedValues: initialValues,
-    schema: form
+    schema: form,
   });
 
   useEffect(() => {
@@ -61,7 +61,7 @@ function SubForm<T>(
     isValid,
     reset: () => resetForm(),
     submit: () => submitForm(),
-    values
+    values,
   }));
 
   return (

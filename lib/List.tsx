@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import Field from "./templates/Fabric";
+import React, { useState } from 'react';
+import Field from './templates/Fabric';
 import {
   getStyle,
   Stack,
@@ -7,12 +7,12 @@ import {
   IconButton,
   Icon,
   DetailsList,
-  SelectionMode
-} from ".";
-import { IColumn, CheckboxVisibility } from "office-ui-fabric-react";
-import matchSorter from "match-sorter";
-import { CSVLink } from "react-csv";
-import { DisplaySchema } from "../../typical-admin";
+  SelectionMode,
+} from '.';
+import { IColumn, CheckboxVisibility } from 'office-ui-fabric-react';
+import matchSorter from 'match-sorter';
+import { CSVLink } from 'react-csv';
+import { DisplaySchema } from '../../typical-admin';
 
 interface Props {
   items: Array<any>;
@@ -29,13 +29,13 @@ const List: React.FC<Props> = ({
   onSelect,
   name,
   csvHeaders,
-  pageSize
+  pageSize,
 }) => {
   const [filters, setFilters] = useState<IndexableObject>({
-    name: "",
-    program: "",
-    location: "",
-    category: ""
+    name: '',
+    program: '',
+    location: '',
+    category: '',
   });
   const [sort, setSort] = useState<IndexableObject>({});
   var filteredItems = items;
@@ -49,33 +49,33 @@ const List: React.FC<Props> = ({
     setFilters({ ...filters, [name]: value });
   }
   function handleSort(
-    ev: React.MouseEvent<HTMLElement, MouseEvent>,
+    _: React.MouseEvent<HTMLElement, MouseEvent>,
     column: IColumn
   ) {
     switch (sort[column.key]) {
-      case "":
-        setSort({ [column.key]: "asc" });
+      case '':
+        setSort({ [column.key]: 'asc' });
         break;
-      case "asc":
-        setSort({ [column.key]: "des" });
+      case 'asc':
+        setSort({ [column.key]: 'des' });
         break;
-      case "des":
-        setSort({ [column.key]: "" });
+      case 'des':
+        setSort({ [column.key]: '' });
         break;
       default:
-        setSort({ [column.key]: "asc" });
+        setSort({ [column.key]: 'asc' });
         break;
     }
   }
   Object.entries(filters).forEach(([name, value]) => {
-    if (value !== "") {
+    if (value !== '') {
       filteredItems = matchSorter(filteredItems, value, { keys: [name] });
     }
   });
   Object.entries(sort).forEach(([name, value]: any) => {
-    if (value !== "" && value !== undefined) {
+    if (value !== '' && value !== undefined) {
       filteredItems = filteredItems.sort((a: any, b: any) =>
-        value === "asc"
+        value === 'asc'
           ? a[name] > b[name]
             ? 1
             : -1
@@ -87,9 +87,9 @@ const List: React.FC<Props> = ({
   });
   return (
     <>
-      <Stack horizontal tokens={{ childrenGap: "0.77em" }}>
+      <Stack horizontal tokens={{ childrenGap: '0.77em' }}>
         {Object.entries(schema)
-          .filter(([k, s]: any) => s.options && s.options.filterable)
+          .filter(([, s]: any) => s.options && s.options.filterable)
           .map(([k, v]: any, i: number) =>
             v.options.options ? (
               <Field
@@ -97,13 +97,13 @@ const List: React.FC<Props> = ({
                 className={style.sm}
                 label={v.label}
                 errors={[]}
-                type={"select"}
+                type={'select'}
                 onChange={handleChange}
                 name={k}
                 value={filters[k]}
                 options={v.options.options.map((p: any) => ({
-                  text: p.text || "",
-                  value: p.value || ""
+                  text: p.text || '',
+                  value: p.value || '',
                 }))}
               />
             ) : (
@@ -112,7 +112,7 @@ const List: React.FC<Props> = ({
                 className={style.sm}
                 label={v.label}
                 errors={[]}
-                type={"text"}
+                type={'text'}
                 onChange={handleChange}
                 name={k}
                 value={filters[k]}
@@ -123,14 +123,14 @@ const List: React.FC<Props> = ({
       <Stack>
         {csvHeaders && (
           <Stack horizontal>
-            <strong>{name}</strong>:{" "}
+            <strong>{name}</strong>:{' '}
             <CSVLink
               className={style.link}
               headers={csvHeaders}
               data={items || []}
               filename={`${name}.csv`}
             >
-              <Icon iconName={"Download"} />
+              <Icon iconName={'Download'} />
             </CSVLink>
           </Stack>
         )}
@@ -154,10 +154,10 @@ const List: React.FC<Props> = ({
               maxWidth: 200,
               isMultiline: true,
               isResizable: true,
-              isFiltered: filters[k] !== "" && filters[k] !== undefined,
+              isFiltered: filters[k] !== '' && filters[k] !== undefined,
               onColumnClick: handleSort,
-              isSorted: sort[k] && sort[k] !== "",
-              isSortedDescending: sort[k] && sort[k] === "des"
+              isSorted: sort[k] && sort[k] !== '',
+              isSortedDescending: sort[k] && sort[k] === 'des',
             };
 
             col.onRender = values =>
@@ -166,17 +166,17 @@ const List: React.FC<Props> = ({
           })}
         />
         {pageSize && (
-          <Stack horizontal horizontalAlign={"end"} verticalAlign={"center"}>
+          <Stack horizontal horizontalAlign={'end'} verticalAlign={'center'}>
             <IconButton disabled={page === 0} onClick={() => setPage(page - 1)}>
-              <Icon iconName={"Remove"} />
+              <Icon iconName={'Remove'} />
             </IconButton>
             <IconButton
               disabled={filteredItems.length - page * pageSize <= pageSize}
               onClick={() => setPage(page + 1)}
             >
-              <Icon iconName={"Add"} />
+              <Icon iconName={'Add'} />
             </IconButton>
-            Page {page + 1} of{" "}
+            Page {page + 1} of{' '}
             {filteredItems.length % pageSize
               ? Math.floor(filteredItems.length / pageSize) + 1
               : Math.floor(filteredItems.length / pageSize)}

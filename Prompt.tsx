@@ -1,5 +1,5 @@
-import React from "react";
-import { PrimaryButton, DefaultButton, Modal, Stack, getStyle } from "./lib";
+import React from 'react';
+import { PrimaryButton, DefaultButton, Modal, Stack, getStyle } from './lib';
 
 interface Props {
   isOpen: boolean;
@@ -17,9 +17,9 @@ const Prompt: React.FC<Props> = ({ isOpen, message, toggle }) => {
       <Stack className={style.modalBody}>{message}</Stack>
       <Stack
         horizontal
-        horizontalAlign={"end"}
+        horizontalAlign={'end'}
         className={style.modalBody}
-        tokens={{ childrenGap: "0.77em" }}
+        tokens={{ childrenGap: '0.77em' }}
       >
         <PrimaryButton onClick={() => toggle(true)} text="Yes" />
         <DefaultButton onClick={() => toggle(false)} text="No" />

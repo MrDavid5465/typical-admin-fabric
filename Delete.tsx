@@ -1,8 +1,8 @@
-import React from "react";
-import { useMutation, Name, PrimaryButton, Stack } from "./lib";
+import React from 'react';
+import { useMutation, Name, PrimaryButton, Stack } from './lib';
 
-import Prompt from "./Prompt";
-import { IDispatcher, ITACallBacks } from "../typical-admin";
+import Prompt from './Prompt';
+import { IDispatcher, ITACallBacks } from '../typical-admin';
 
 interface Props {
   dispatcher: IDispatcher;
@@ -19,18 +19,18 @@ const Delete: React.FC<Props> = ({
   match,
   id,
   name,
-  callBacks
+  callBacks,
 }) => {
   const [open, setOpen] = React.useState(false);
 
   const [removeItem] = useMutation(dispatcher.delete, {
     onCompleted: data => {
-      history.push(match.url.replace(`/${id}/show`, ""));
+      history.push(match.url.replace(`/${id}/show`, ''));
       callBacks &&
         callBacks.delete &&
         callBacks.delete(data[`remove${name.singular}`]);
     },
-    refetchQueries: [{ query: dispatcher.list }]
+    refetchQueries: [{ query: dispatcher.list }],
   });
 
   function handleSubmit(response = false) {

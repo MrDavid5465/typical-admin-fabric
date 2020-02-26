@@ -1,17 +1,15 @@
-import React from "react";
+import React from 'react';
 import ReactiveAdmin, {
   IDispatcher,
   ITACallBacks,
   ITASchema,
-  IComponents
-} from "../typical-admin";
+  IComponents,
+} from '../typical-admin';
 
-import Update from "./Update";
-import List from "./List";
-import Create from "./Create";
-import Show from "./Show";
-import { mergeStyleSets, getTheme } from "office-ui-fabric-react";
-import stylesJson from "./lib/getStyle";
+import Update from './Update';
+import List from './List';
+import Create from './Create';
+import Show from './Show';
 
 interface Props {
   dispatcher: IDispatcher;
@@ -30,7 +28,7 @@ const Index: React.FC<Props> = ({
   schemaDefinition,
   components,
   callBacks,
-  pageSize = 20
+  pageSize = 20,
 }) => {
   return (
     <ReactiveAdmin
@@ -43,12 +41,11 @@ const Index: React.FC<Props> = ({
         new: (props: any) => <Create {...props} />,
         show: (props: any) => <Show {...props} />,
         edit: (props: any) => <Update {...props} />,
-        ...components
+        ...components,
       }}
       schemaDefinition={schemaDefinition}
     />
   );
 };
-export const getStyle = () => mergeStyleSets(stylesJson(getTheme()));
 
 export default Index;

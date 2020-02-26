@@ -1,11 +1,11 @@
-import React, { createRef, useState } from "react";
-import { Name, DefaultButton, PrimaryButton, Form } from "./lib";
-import { useMutation, Stack, Separator } from "./lib";
+import React, { createRef, useState } from 'react';
+import { Name, DefaultButton, PrimaryButton, Form } from './lib';
+import { useMutation, Stack, Separator } from './lib';
 
-import Links from "./Links";
-import { SchemaDefinition } from "@octant/per-form";
-import { IDispatcher, ITACallBacks } from "../typical-admin";
-import { getStyle } from "../denim";
+import Links from './Links';
+import { SchemaDefinition } from '@octant/per-form';
+import { IDispatcher, ITACallBacks } from '../typical-admin';
+import { getStyle } from './lib';
 
 interface Props {
   dispatcher: IDispatcher;
@@ -22,26 +22,26 @@ const New: React.FC<Props> = ({
   history,
   name,
   schemaDefinition,
-  callBacks
+  callBacks,
 }) => {
   const newRef: React.RefObject<any> = createRef();
   const [isValid, setIsValid] = useState(false);
   const [createItem] = useMutation(dispatcher.new, {
     onCompleted: data => {
       history.push(
-        match.url.replace("new", `${data[`add${name.singular}`].id}/show`)
+        match.url.replace('new', `${data[`add${name.singular}`].id}/show`)
       );
       callBacks && callBacks.new && callBacks.new(data[`add${name.singular}`]);
     },
-    refetchQueries: [{ query: dispatcher.list }]
+    refetchQueries: [{ query: dispatcher.list }],
   });
 
   function handleCreate() {
     newRef.current.isValid &&
       createItem({
         variables: {
-          values: newRef.current.submit()
-        }
+          values: newRef.current.submit(),
+        },
       });
   }
   function handleReset() {
@@ -57,11 +57,11 @@ const New: React.FC<Props> = ({
       <Stack className={style.md}>
         <Form
           ref={newRef}
-          name={"create"}
+          name={'create'}
           form={schemaDefinition}
           onChange={handleChange}
         />
-        <Stack horizontal tokens={{ childrenGap: "0.77em" }}>
+        <Stack horizontal tokens={{ childrenGap: '0.77em' }}>
           <PrimaryButton onClick={handleCreate} disabled={!isValid}>
             Submit
           </PrimaryButton>

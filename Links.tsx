@@ -1,7 +1,7 @@
-import React from "react";
-import { Link, Name } from "./lib";
-import { getStyle, Stack, Separator } from "./lib";
-import { IDispatcher } from "../typical-admin";
+import React from 'react';
+import { Link, Name } from './lib';
+import { getStyle, Stack, Separator } from './lib';
+import { IDispatcher } from '../typical-admin';
 
 interface Props {
   match: any;
@@ -14,18 +14,18 @@ const Links: React.FC<Props> = ({ match, name, dispatcher }) => {
     edit: new RegExp(`/edit$`),
     new: new RegExp(`/new$`),
     root: new RegExp(`/${name.plural.toLowerCase()}$`),
-    show: new RegExp(`/show$`)
+    show: new RegExp(`/show$`),
   };
   const style = getStyle();
 
   if (urls.show.test(match.url)) {
     return (
-      <Stack horizontal tokens={{ childrenGap: "0.77em" }}>
+      <Stack horizontal tokens={{ childrenGap: '0.77em' }}>
         {dispatcher.edit && (
           <>
             <Link
               className={style.link}
-              to={`${match.url.replace("show", "edit")}`}
+              to={`${match.url.replace('show', 'edit')}`}
             >
               Edit
             </Link>
@@ -34,7 +34,7 @@ const Links: React.FC<Props> = ({ match, name, dispatcher }) => {
         )}
         <Link
           className={style.link}
-          to={`${match.url.replace(`/${match.params.id}/show`, "")}`}
+          to={`${match.url.replace(`/${match.params.id}/show`, '')}`}
         >
           Back
         </Link>
@@ -42,19 +42,19 @@ const Links: React.FC<Props> = ({ match, name, dispatcher }) => {
     );
   } else if (urls.edit.test(match.url)) {
     return (
-      <Link className={style.link} to={`${match.url.replace("edit", "show")}`}>
+      <Link className={style.link} to={`${match.url.replace('edit', 'show')}`}>
         Back
       </Link>
     );
   } else if (urls.new.test(match.url)) {
     return (
-      <Link className={style.link} to={`${match.url.replace(`/new`, "")}`}>
+      <Link className={style.link} to={`${match.url.replace(`/new`, '')}`}>
         Back
       </Link>
     );
   } else if (urls.root.test(match.url)) {
     return (
-      <Stack horizontal tokens={{ childrenGap: "0.77em" }}>
+      <Stack horizontal tokens={{ childrenGap: '0.77em' }}>
         {dispatcher.new && (
           <>
             <Link className={style.link} to={`${match.url}/new`}>
@@ -63,7 +63,7 @@ const Links: React.FC<Props> = ({ match, name, dispatcher }) => {
             <Separator vertical />
           </>
         )}
-        <Link className={style.link} to={`${match.url.replace(match.url, "")}`}>
+        <Link className={style.link} to={`${match.url.replace(match.url, '')}`}>
           Back
         </Link>
       </Stack>

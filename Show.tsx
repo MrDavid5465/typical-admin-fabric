@@ -1,8 +1,8 @@
-import React from "react";
-import Links from "./Links";
-import Delete from "./Delete";
-import { useQuery, Stack, Separator, Name } from "./lib";
-import { IDispatcher, ITACallBacks, DisplaySchema } from "../typical-admin";
+import React from 'react';
+import Links from './Links';
+import Delete from './Delete';
+import { useQuery, Stack, Separator, Name } from './lib';
+import { IDispatcher, ITACallBacks, DisplaySchema } from '../typical-admin';
 
 interface Props {
   dispatcher: IDispatcher;
@@ -19,12 +19,12 @@ const Show: React.FC<Props> = ({
   match,
   name,
   schemaDefinition,
-  callBacks
+  callBacks,
 }) => {
   const id = match.params.id;
   const queryName = `get${name.singular}`;
   const { data, error, loading } = useQuery(dispatcher.show, {
-    variables: { id }
+    variables: { id },
   });
 
   if (error) {
@@ -41,11 +41,11 @@ const Show: React.FC<Props> = ({
       {Object.entries(schemaDefinition).map(([k, v]: any) => {
         return (
           <p key={k}>
-            <strong>{v.label}</strong>:{" "}
+            <strong>{v.label}</strong>:{' '}
             {v.onRender
               ? v.onRender({
                   value: data[queryName][k],
-                  values: data[queryName]
+                  values: data[queryName],
                 })
               : data[queryName][k]}
           </p>

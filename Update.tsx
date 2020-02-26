@@ -1,18 +1,18 @@
-import React, { createRef, useState } from "react";
+import React, { createRef, useState } from 'react';
 import {
   Name,
   Stack,
   Separator,
   DefaultButton,
   PrimaryButton,
-  Form
-} from "./lib";
-import { useMutation, useQuery } from "./lib";
+  Form,
+} from './lib';
+import { useMutation, useQuery } from './lib';
 
-import Links from "./Links";
-import { IDispatcher, ITACallBacks } from "../typical-admin";
-import { SchemaDefinition } from "@octant/per-form";
-import { getStyle } from "../denim";
+import Links from './Links';
+import { IDispatcher, ITACallBacks } from '../typical-admin';
+import { SchemaDefinition } from '@octant/per-form';
+import { getStyle } from './lib';
 
 interface Props {
   dispatcher: IDispatcher;
@@ -29,28 +29,28 @@ const Update: React.FC<Props> = ({
   match,
   name,
   schemaDefinition,
-  callBacks
+  callBacks,
 }) => {
   const id = match.params.id;
   const [isValid, setIsValid] = useState(false);
   const queryName = `get${name.singular}`;
 
   const { data, error, loading } = useQuery(dispatcher.show, {
-    variables: { id }
+    variables: { id },
   });
   const initialValues = !loading && !error && data[queryName];
 
   const [updateItem] = useMutation(dispatcher.edit, {
     onCompleted: data => {
-      history.push(match.url.replace("edit", "show"));
+      history.push(match.url.replace('edit', 'show'));
       callBacks &&
         callBacks.edit &&
         callBacks.edit(data[`add${name.singular}`]);
     },
     refetchQueries: [
       { query: dispatcher.show, variables: { id } },
-      { query: dispatcher.list }
-    ]
+      { query: dispatcher.list },
+    ],
   });
   const editRef: React.RefObject<any> = createRef();
   const style = getStyle();
@@ -71,8 +71,8 @@ const Update: React.FC<Props> = ({
       updateItem({
         variables: {
           id,
-          update: editRef.current.submit()
-        }
+          update: editRef.current.submit(),
+        },
       });
   }
   function handleChange() {
@@ -85,12 +85,12 @@ const Update: React.FC<Props> = ({
       <Stack className={style.md}>
         <Form
           ref={editRef}
-          name={"update"}
+          name={'update'}
           form={schemaDefinition}
           initialValues={initialValues}
           onChange={handleChange}
         />
-        <Stack horizontal tokens={{ childrenGap: "0.77em" }}>
+        <Stack horizontal tokens={{ childrenGap: '0.77em' }}>
           <PrimaryButton onClick={handleSubmit} disabled={!isValid}>
             Submit
           </PrimaryButton>

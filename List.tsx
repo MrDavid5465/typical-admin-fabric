@@ -1,7 +1,9 @@
-import React from "react";
-import { Stack, Name, useQuery, List as DetailsList } from "./lib";
-import Links from "./Links";
-import { IDispatcher, DisplaySchema } from "../typical-admin";
+import React from 'react';
+import { Stack, Name, useQuery } from './lib';
+import DetailsList from './lib/List';
+
+import Links from './Links';
+import { IDispatcher, DisplaySchema } from '../typical-admin';
 
 interface Props {
   dispatcher: IDispatcher;
@@ -18,7 +20,7 @@ const List: React.FC<Props> = ({
   history,
   name,
   schemaDefinition,
-  pageSize
+  pageSize,
 }) => {
   const queryName = `get${name.plural}`;
   const { data: items, error, loading } = useQuery(dispatcher.list);
