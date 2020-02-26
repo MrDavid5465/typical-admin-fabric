@@ -152,6 +152,7 @@ const List: React.FC<Props> = ({
               name: v.label,
               minWidth: 100,
               maxWidth: 200,
+              isMultiline: true,
               isResizable: true,
               isFiltered: filters[k] !== "" && filters[k] !== undefined,
               onColumnClick: handleSort,
