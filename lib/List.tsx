@@ -67,6 +67,15 @@ const List: React.FC<Props> = ({
         break;
     }
   }
+  function toCSV(schema: DisplaySchema<any>, items: any[]) {
+    return items.map(i => {
+      const item = { ...i };
+      Object.entries(schema).forEach(([k, v]: any) => {
+        item[k] = v.onRender ? v.onRender({ value: i[k], values: i }) : i[k];
+      });
+      return item;
+    });
+  }
   Object.entries(filters).forEach(([name, value]) => {
     if (value !== '') {
       filteredItems = matchSorter(filteredItems, value, { keys: [name] });
@@ -127,7 +136,7 @@ const List: React.FC<Props> = ({
             <CSVLink
               className={style.link}
               headers={csvHeaders}
-              data={items || []}
+              data={toCSV(schema, filteredItems)}
               filename={`${name}.csv`}
             >
               <Icon iconName={'Download'} />
