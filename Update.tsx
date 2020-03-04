@@ -105,6 +105,7 @@ const Update: React.FC<Props> = ({
           match,
           name,
           dispatcher,
+          item: data[queryName],
         })
       ) : (
         <Links match={match} name={name} dispatcher={dispatcher} />

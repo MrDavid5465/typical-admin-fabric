@@ -13,7 +13,7 @@ const Links: React.FC<Props> = ({ match, name, dispatcher }) => {
   const urls = {
     edit: new RegExp(`/edit$`),
     new: new RegExp(`/new$`),
-    root: new RegExp(`/${name.plural.toLowerCase()}$`),
+    root: new RegExp(``),
     show: new RegExp(`/show$`),
   };
   const style = getStyle();
