@@ -59,25 +59,26 @@ const Show: React.FC<Props> = ({
         );
       })}
       <Stack horizontal>
-        {dispatcher.delete && components?.delete ? (
-          React.createElement(components.delete, {
-            id,
-            name,
-            match,
-            history,
-            dispatcher,
-            callBacks,
-          })
-        ) : (
-          <Delete
-            history={history}
-            id={id}
-            name={name}
-            match={match}
-            dispatcher={dispatcher}
-            callBacks={callBacks}
-          />
-        )}
+        {dispatcher.delete &&
+          (components?.delete ? (
+            React.createElement(components.delete, {
+              id,
+              name,
+              match,
+              history,
+              dispatcher,
+              callBacks,
+            })
+          ) : (
+            <Delete
+              history={history}
+              id={id}
+              name={name}
+              match={match}
+              dispatcher={dispatcher}
+              callBacks={callBacks}
+            />
+          ))}
       </Stack>
       <Separator />
       {components?.links ? (
