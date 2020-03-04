@@ -10,7 +10,7 @@ import {
 import { useMutation, useQuery } from './lib';
 
 import Links from './Links';
-import { IDispatcher, ITACallBacks } from '../typical-admin';
+import { IDispatcher, ITACallBacks, IComponents } from '../typical-admin';
 import { SchemaDefinition } from '@octant/per-form';
 import { getStyle } from './lib';
 
@@ -21,6 +21,7 @@ interface Props {
   name: Name;
   schemaDefinition: SchemaDefinition<any>;
   callBacks?: ITACallBacks;
+  components?: IComponents;
 }
 
 const Update: React.FC<Props> = ({
@@ -30,6 +31,7 @@ const Update: React.FC<Props> = ({
   name,
   schemaDefinition,
   callBacks,
+  components,
 }) => {
   const id = match.params.id;
   const [isValid, setIsValid] = useState(false);
@@ -98,7 +100,15 @@ const Update: React.FC<Props> = ({
         </Stack>
       </Stack>
       <Separator />
-      <Links match={match} name={name} dispatcher={dispatcher} />
+      {components?.links ? (
+        React.createElement(components.links, {
+          match,
+          name,
+          dispatcher,
+        })
+      ) : (
+        <Links match={match} name={name} dispatcher={dispatcher} />
+      )}
     </Stack>
   );
 };

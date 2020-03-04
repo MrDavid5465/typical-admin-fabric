@@ -3,7 +3,7 @@ import { Stack, Name, useQuery } from './lib';
 import DetailsList from './lib/List';
 
 import Links from './Links';
-import { IDispatcher, DisplaySchema } from '../typical-admin';
+import { IDispatcher, DisplaySchema, IComponents } from '../typical-admin';
 
 interface Props {
   dispatcher: IDispatcher;
@@ -12,6 +12,7 @@ interface Props {
   name: Name;
   schemaDefinition: DisplaySchema<any>;
   pageSize?: number;
+  components?: IComponents;
 }
 
 const List: React.FC<Props> = ({
@@ -21,6 +22,7 @@ const List: React.FC<Props> = ({
   name,
   schemaDefinition,
   pageSize,
+  components,
 }) => {
   const queryName = `get${name.plural}`;
   const { data: items, error, loading } = useQuery(dispatcher.list);
@@ -44,7 +46,15 @@ const List: React.FC<Props> = ({
         items={items[queryName] || []}
       />
       <br />
-      <Links match={match} name={name} dispatcher={dispatcher} />
+      {components?.links ? (
+        React.createElement(components.links, {
+          match,
+          name,
+          dispatcher,
+        })
+      ) : (
+        <Links match={match} name={name} dispatcher={dispatcher} />
+      )}
     </Stack>
   );
 };

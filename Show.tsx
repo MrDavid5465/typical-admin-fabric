@@ -2,7 +2,12 @@ import React from 'react';
 import Links from './Links';
 import Delete from './Delete';
 import { useQuery, Stack, Separator, Name } from './lib';
-import { IDispatcher, ITACallBacks, DisplaySchema } from '../typical-admin';
+import {
+  IDispatcher,
+  ITACallBacks,
+  DisplaySchema,
+  IComponents,
+} from '../typical-admin';
 
 interface Props {
   dispatcher: IDispatcher;
@@ -11,6 +16,7 @@ interface Props {
   name: Name;
   schemaDefinition: DisplaySchema<any>;
   callBacks?: ITACallBacks;
+  components?: IComponents;
 }
 
 const Show: React.FC<Props> = ({
@@ -20,6 +26,7 @@ const Show: React.FC<Props> = ({
   name,
   schemaDefinition,
   callBacks,
+  components,
 }) => {
   const id = match.params.id;
   const queryName = `get${name.singular}`;
@@ -51,18 +58,37 @@ const Show: React.FC<Props> = ({
           </p>
         );
       })}
-      {dispatcher.delete && (
-        <Delete
-          history={history}
-          id={id}
-          name={name}
-          match={match}
-          dispatcher={dispatcher}
-          callBacks={callBacks}
-        />
-      )}
+      <Stack horizontal>
+        {dispatcher.delete && components?.delete ? (
+          React.createElement(components.delete, {
+            id,
+            name,
+            match,
+            history,
+            dispatcher,
+            callBacks,
+          })
+        ) : (
+          <Delete
+            history={history}
+            id={id}
+            name={name}
+            match={match}
+            dispatcher={dispatcher}
+            callBacks={callBacks}
+          />
+        )}
+      </Stack>
       <Separator />
-      <Links match={match} name={name} dispatcher={dispatcher} />
+      {components?.links ? (
+        React.createElement(components.links, {
+          match,
+          name,
+          dispatcher,
+        })
+      ) : (
+        <Links match={match} name={name} dispatcher={dispatcher} />
+      )}
     </Stack>
   );
 };

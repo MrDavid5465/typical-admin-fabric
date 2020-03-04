@@ -4,7 +4,7 @@ import { useMutation, Stack, Separator } from './lib';
 
 import Links from './Links';
 import { SchemaDefinition } from '@octant/per-form';
-import { IDispatcher, ITACallBacks } from '../typical-admin';
+import { IDispatcher, ITACallBacks, IComponents } from '../typical-admin';
 import { getStyle } from './lib';
 
 interface Props {
@@ -14,6 +14,7 @@ interface Props {
   name: Name;
   schemaDefinition: SchemaDefinition<any>;
   callBacks?: ITACallBacks;
+  components?: IComponents;
 }
 
 const New: React.FC<Props> = ({
@@ -23,6 +24,7 @@ const New: React.FC<Props> = ({
   name,
   schemaDefinition,
   callBacks,
+  components,
 }) => {
   const newRef: React.RefObject<any> = createRef();
   const [isValid, setIsValid] = useState(false);
@@ -69,7 +71,15 @@ const New: React.FC<Props> = ({
         </Stack>
       </Stack>
       <Separator />
-      <Links match={match} name={name} dispatcher={dispatcher} />
+      {components?.links ? (
+        React.createElement(components.links, {
+          match,
+          name,
+          dispatcher,
+        })
+      ) : (
+        <Links match={match} name={name} dispatcher={dispatcher} />
+      )}
     </Stack>
   );
 };
