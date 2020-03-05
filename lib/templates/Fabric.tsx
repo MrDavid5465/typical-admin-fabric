@@ -403,7 +403,7 @@ export default function Raw(props: any): ReactElement {
                   { key: 'AM', text: 'AM' },
                   { key: 'PM', text: 'PM' },
                 ]}
-                disabled={(rest && rest.disabled) || !value}
+                disabled={rest && rest.disabled}
                 onChange={(_: any, option: any) => {
                   option.key === 'AM'
                     ? handleTimeChange(hour, minute)
