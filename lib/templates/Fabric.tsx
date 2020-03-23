@@ -113,18 +113,20 @@ export default function Raw(props: any): ReactElement {
   }
   function handleTimeChange(hour: number, minute: number) {
     const date = new Date();
-
-    onChange(
-      name,
-      new Date(
-        date.getFullYear(),
-        date.getMonth(),
-        date.getDate(),
-        hour,
-        minute,
-        0
-      )
-    );
+    console.log(hour, hour !== -1);
+    hour !== -1
+      ? onChange(
+          name,
+          new Date(
+            date.getFullYear(),
+            date.getMonth(),
+            date.getDate(),
+            hour,
+            minute,
+            0
+          )
+        )
+      : onChange(name, '');
   }
   function choose() {
     switch (type) {
@@ -338,7 +340,7 @@ export default function Raw(props: any): ReactElement {
             ? minutes.push({ key: i, text: `0${i}` })
             : minutes.push({ key: i, text: `${i}` });
         }
-        const hour = value ? new Date(value).getHours() % 12 : 0;
+        const hour = value ? new Date(value).getHours() % 12 : -1;
         const minute = value ? new Date(value).getMinutes() : 0;
         const ampm = value
           ? new Date(value).getHours() < 12
@@ -351,8 +353,9 @@ export default function Raw(props: any): ReactElement {
             <Stack horizontal tokens={{ childrenGap: '0.77em' }}>
               <ComboBox
                 selectedKey={hour}
-                options={
-                  rest.hourOptions?.length > 0
+                options={[
+                  { key: -1, text: '' },
+                  ...(rest.hourOptions?.length > 0
                     ? rest.hourOptions
                         .map((o: any) => ({
                           key: o.value,
@@ -363,8 +366,8 @@ export default function Raw(props: any): ReactElement {
                         )
                     : hours.sort((a, b) =>
                         parseInt(a.text) > parseInt(b.text) ? 1 : -1
-                      )
-                }
+                      )),
+                ]}
                 allowFreeform
                 disabled={rest.disabled}
                 autoComplete={'on'}
