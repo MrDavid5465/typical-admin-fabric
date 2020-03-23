@@ -397,7 +397,7 @@ export default function Raw(props: any): ReactElement {
                 disabled={rest.disabled}
                 autoComplete={'on'}
                 onChange={(_: any, option: any) =>
-                  handleTimeChange(hour, option.key)
+                  handleTimeChange(hour !== -1 ? hour : 0, option.key)
                 }
               />
               <ComboBox
@@ -409,8 +409,8 @@ export default function Raw(props: any): ReactElement {
                 disabled={rest && rest.disabled}
                 onChange={(_: any, option: any) => {
                   option.key === 'AM'
-                    ? handleTimeChange(hour, minute)
-                    : handleTimeChange(hour + 12, minute);
+                    ? handleTimeChange(hour !== -1 ? hour : 0, minute)
+                    : handleTimeChange((hour !== -1 ? hour : 0) + 12, minute);
                 }}
               />
             </Stack>
