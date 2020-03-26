@@ -4,6 +4,7 @@ import DetailsList from './lib/List';
 
 import Links from './Links';
 import { IDispatcher, DisplaySchema, IComponents } from '../typical-admin';
+import Subscriber from '../typical-admin/Subscriber';
 
 interface Props {
   dispatcher: IDispatcher;
@@ -25,7 +26,7 @@ const List: React.FC<Props> = ({
   components,
 }) => {
   const queryName = `get${name.plural}`;
-  const { data: items, error, loading } = useQuery(dispatcher.list);
+  const { data: items, error, loading, refetch } = useQuery(dispatcher.list);
   if (error) {
     return <span>{`error: ${error}`}</span>;
   }
@@ -35,6 +36,12 @@ const List: React.FC<Props> = ({
   }
   return (
     <Stack>
+      {dispatcher.subscribe && (
+        <Subscriber
+          document={dispatcher.subscribe}
+          options={{ onSubscriptionData: () => refetch() }}
+        />
+      )}
       <h3>Listing {name.plural}</h3>
       <DetailsList
         pageSize={pageSize}

@@ -13,6 +13,7 @@ import Links from './Links';
 import { IDispatcher, ITACallBacks, IComponents } from '../typical-admin';
 import { SchemaDefinition } from '@octant/per-form';
 import { getStyle } from './lib';
+import Subscriber from '../typical-admin/Subscriber';
 
 interface Props {
   dispatcher: IDispatcher;
@@ -37,7 +38,7 @@ const Update: React.FC<Props> = ({
   const [isValid, setIsValid] = useState(false);
   const queryName = `get${name.singular}`;
 
-  const { data, error, loading } = useQuery(dispatcher.show, {
+  const { data, error, loading, refetch } = useQuery(dispatcher.show, {
     variables: { id },
   });
   const initialValues = !loading && !error && data[queryName];
@@ -83,6 +84,16 @@ const Update: React.FC<Props> = ({
 
   return (
     <Stack>
+      {(dispatcher.subscribe || dispatcher.subscribeToOne) && (
+        <Subscriber
+          document={dispatcher.subscribeToOne || dispatcher.subscribe}
+          options={{
+            variables:
+              (dispatcher.subscribeToOne !== undefined && { id }) || {},
+            onSubscriptionData: () => refetch(),
+          }}
+        />
+      )}
       <h4>Edit {name.singular}</h4>
       <Stack className={style.md}>
         <Form

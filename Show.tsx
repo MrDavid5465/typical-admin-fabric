@@ -8,6 +8,7 @@ import {
   DisplaySchema,
   IComponents,
 } from '../typical-admin';
+import Subscriber from '../typical-admin/Subscriber';
 
 interface Props {
   dispatcher: IDispatcher;
@@ -30,7 +31,7 @@ const Show: React.FC<Props> = ({
 }) => {
   const id = match.params.id;
   const queryName = `get${name.singular}`;
-  const { data, error, loading } = useQuery(dispatcher.show, {
+  const { data, error, loading, refetch } = useQuery(dispatcher.show, {
     variables: { id },
   });
 
@@ -44,6 +45,16 @@ const Show: React.FC<Props> = ({
 
   return (
     <Stack>
+      {(dispatcher.subscribe || dispatcher.subscribeToOne) && (
+        <Subscriber
+          document={dispatcher.subscribeToOne || dispatcher.subscribe}
+          options={{
+            variables:
+              (dispatcher.subscribeToOne !== undefined && { id }) || {},
+            onSubscriptionData: () => refetch(),
+          }}
+        />
+      )}
       <h4>Showing {name.singular}</h4>
       {Object.entries(schemaDefinition).map(([k, v]: any) => {
         return (
