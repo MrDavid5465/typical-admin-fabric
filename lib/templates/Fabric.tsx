@@ -114,19 +114,22 @@ export default function Raw(props: any): ReactElement {
   function handleTimeChange(
     hour: number,
     minute: number,
-    date: Date | null = new Date()
+    date: Date | null | string = new Date()
   ) {
-    if (date === null) {
-      date = new Date();
+    var newDate: Date;
+    if (date === null || typeof date === 'string') {
+      newDate = new Date();
+    } else {
+      newDate = date;
+      hour = 8;
     }
-    console.log(hour, hour !== -1);
     hour !== -1
       ? onChange(
           name,
           new Date(
-            date.getFullYear(),
-            date.getMonth(),
-            date.getDate(),
+            newDate.getFullYear(),
+            newDate.getMonth(),
+            newDate.getDate(),
             hour,
             minute,
             0
