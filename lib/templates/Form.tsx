@@ -53,7 +53,8 @@ function SubForm<T>(
   });
 
   useEffect(() => {
-    onChange && onChange(name, { raw: values, clean: submitForm(), isValid });
+    onChange &&
+      onChange(name, { raw: values, clean: submitForm(), isValid, errors });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [name, values, isValid]);
 
