@@ -337,24 +337,24 @@ export default function Raw(props: any): ReactElement {
         ampm = value ? (new Date(value).getHours() < 12 ? 'AM' : 'PM') : 'AM';
         return (
           <Stack className={rest.className}>
-            <DatePicker
-              label={label}
-              onSelectDate={(date: Date | null | undefined) =>
-                handleTimeChange(hour, minute, date)
-              }
-              formatDate={(val: any) => format(parseDate(val), 'yyyy-MM-dd')}
-              value={
-                new Date(value).toDateString() ===
-                  new Date('3000-01-01').toDateString() || value === ''
-                  ? undefined
-                  : parseDate(value)
-              }
-              onFocus={handleFocus}
-              placeholder={placeholder}
-              allowTextInput={true}
-              {...rest}
-            />
             <Stack horizontal tokens={{ childrenGap: '0.77em' }}>
+              <DatePicker
+                label={label}
+                onSelectDate={(date: Date | null | undefined) =>
+                  handleTimeChange(hour, minute, date)
+                }
+                formatDate={(val: any) => format(parseDate(val), 'yyyy-MM-dd')}
+                value={
+                  new Date(value).toDateString() ===
+                    new Date('3000-01-01').toDateString() || value === ''
+                    ? undefined
+                    : parseDate(value)
+                }
+                onFocus={handleFocus}
+                placeholder={placeholder}
+                allowTextInput={true}
+                {...rest}
+              />
               <ComboBox
                 selectedKey={hour}
                 options={[
