@@ -111,8 +111,14 @@ export default function Raw(props: any): ReactElement {
   function parseDate(val: any) {
     return (val && typeof val === 'string' ? parseISO(val) : val) || new Date();
   }
-  function handleTimeChange(hour: number, minute: number) {
-    const date = new Date();
+  function handleTimeChange(
+    hour: number,
+    minute: number,
+    date: Date | null = new Date()
+  ) {
+    if (date === null) {
+      date = new Date();
+    }
     console.log(hour, hour !== -1);
     hour !== -1
       ? onChange(
@@ -128,7 +134,14 @@ export default function Raw(props: any): ReactElement {
         )
       : onChange(name, '');
   }
+
   function choose() {
+    var i;
+    const hours = [];
+    const minutes = [];
+    var hour: number;
+    var minute: number;
+    var ampm: string;
     switch (type) {
       case 'checkbox':
         return (
@@ -286,12 +299,124 @@ export default function Raw(props: any): ReactElement {
               label={label}
               onSelectDate={handleSelectDate}
               formatDate={(val: any) => format(parseDate(val), 'yyyy-MM-dd')}
-              value={value === '' ? undefined : parseDate(value)}
+              value={
+                new Date(value).toDateString() ===
+                  new Date('3000-01-01').toDateString() || value === ''
+                  ? undefined
+                  : parseDate(value)
+              }
               onFocus={handleFocus}
               placeholder={placeholder}
               allowTextInput={true}
               {...rest}
             />
+            <Stack className={style.errors}>
+              <Feedback
+                and={[!isValid, isTouched]}
+                errors={errors}
+                dirty={isDirty}
+              />
+            </Stack>
+          </Stack>
+        );
+      case 'datetime':
+        for (i = 0; i < 60; i++) {
+          i === 0 && hours.push({ key: i, text: '12' });
+          i > 0 && i < 12 && hours.push({ key: i, text: `${i}` });
+          i < 10
+            ? minutes.push({ key: i, text: `0${i}` })
+            : minutes.push({ key: i, text: `${i}` });
+        }
+        hour = value ? new Date(value).getHours() % 12 : -1;
+        minute = value ? new Date(value).getMinutes() : 0;
+        ampm = value ? (new Date(value).getHours() < 12 ? 'AM' : 'PM') : 'AM';
+        return (
+          <Stack className={rest.className}>
+            <DatePicker
+              label={label}
+              onSelectDate={(date: Date | null | undefined) =>
+                handleTimeChange(hour, minute, date)
+              }
+              formatDate={(val: any) => format(parseDate(val), 'yyyy-MM-dd')}
+              value={
+                new Date(value).toDateString() ===
+                  new Date('3000-01-01').toDateString() || value === ''
+                  ? undefined
+                  : parseDate(value)
+              }
+              onFocus={handleFocus}
+              placeholder={placeholder}
+              allowTextInput={true}
+              {...rest}
+            />
+            <Stack horizontal tokens={{ childrenGap: '0.77em' }}>
+              <ComboBox
+                selectedKey={hour}
+                options={[
+                  { key: -1, text: '' },
+                  ...(rest.hourOptions?.length > 0
+                    ? rest.hourOptions
+                        .map((o: any) => ({
+                          key: o.value,
+                          text: o.text,
+                        }))
+                        .sort((a: any, b: any) =>
+                          parseInt(a.text) > parseInt(b.text) ? 1 : -1
+                        )
+                    : hours.sort((a, b) =>
+                        parseInt(a.text) > parseInt(b.text) ? 1 : -1
+                      )),
+                ]}
+                allowFreeform
+                disabled={rest.disabled}
+                autoComplete={'on'}
+                onChange={(_: any, option: any) => {
+                  ampm === 'AM'
+                    ? handleTimeChange(option.key, minute, value)
+                    : handleTimeChange(option.key + 12, minute, value);
+                }}
+              />
+              <ComboBox
+                selectedKey={minute}
+                options={
+                  rest.minuteOptions?.length > 0
+                    ? rest.minuteOptions
+                        .map((o: any) => ({
+                          key: o.value,
+                          text: o.text,
+                        }))
+                        .sort((a: any, b: any) =>
+                          parseInt(a.text) > parseInt(b.text) ? 1 : -1
+                        )
+                    : minutes.sort((a: any, b: any) =>
+                        parseInt(a.text) > parseInt(b.text) ? 1 : -1
+                      )
+                }
+                allowFreeform
+                disabled={rest.disabled}
+                autoComplete={'on'}
+                onChange={(_: any, option: any) =>
+                  handleTimeChange(hour !== -1 ? hour : 0, option.key, value)
+                }
+              />
+              <ComboBox
+                selectedKey={ampm}
+                options={[
+                  { key: 'AM', text: 'AM' },
+                  { key: 'PM', text: 'PM' },
+                ]}
+                disabled={rest && rest.disabled}
+                onChange={(_: any, option: any) => {
+                  option.key === 'AM'
+                    ? handleTimeChange(hour !== -1 ? hour : 0, minute, value)
+                    : handleTimeChange(
+                        (hour !== -1 ? hour : 0) + 12,
+                        minute,
+                        value
+                      );
+                }}
+              />
+            </Stack>
             <Stack className={style.errors}>
               <Feedback
                 and={[!isValid, isTouched]}
@@ -330,9 +455,6 @@ export default function Raw(props: any): ReactElement {
           </Stack>
         );
       case 'timetoday':
-        var i;
-        const hours = [];
-        const minutes = [];
         for (i = 0; i < 60; i++) {
           i === 0 && hours.push({ key: i, text: '12' });
           i > 0 && i < 12 && hours.push({ key: i, text: `${i}` });
@@ -340,13 +462,9 @@ export default function Raw(props: any): ReactElement {
             ? minutes.push({ key: i, text: `0${i}` })
             : minutes.push({ key: i, text: `${i}` });
         }
-        const hour = value ? new Date(value).getHours() % 12 : -1;
-        const minute = value ? new Date(value).getMinutes() : 0;
-        const ampm = value
-          ? new Date(value).getHours() < 12
-            ? 'AM'
-            : 'PM'
-          : 'AM';
+        hour = value ? new Date(value).getHours() % 12 : -1;
+        minute = value ? new Date(value).getMinutes() : 0;
+        ampm = value ? (new Date(value).getHours() < 12 ? 'AM' : 'PM') : 'AM';
         return (
           <Stack>
             <Label>{label}</Label>
