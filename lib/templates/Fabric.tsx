@@ -13,6 +13,7 @@ import {
   getTheme,
   mergeStyleSets,
   DatePicker,
+  PrimaryButton,
 } from 'office-ui-fabric-react';
 import { format, parseISO } from 'date-fns';
 interface IndexableObject {
@@ -69,7 +70,9 @@ export default function Raw(props: any): ReactElement {
     const { value } = e.target;
     onChange(name, value);
   }
-
+  function sign() {
+    onChange(name, rest.signature);
+  }
   function handleCheck(e: any) {
     const { checked } = e.target;
     onChange(name, checked);
@@ -121,7 +124,6 @@ export default function Raw(props: any): ReactElement {
       newDate = new Date();
     } else {
       newDate = date;
-      hour = 8;
     }
     hour !== -1
       ? onChange(
@@ -542,6 +544,25 @@ export default function Raw(props: any): ReactElement {
                 dirty={isDirty}
               />
             </Stack>
+          </Stack>
+        );
+      case 'signature':
+        return (
+          <Stack
+            horizontal
+            tokens={{ childrenGap: '0.77em' }}
+            verticalAlign={'end'}
+          >
+            <TextField
+              disabled={true}
+              label={label}
+              name={name}
+              onChange={handleChange}
+              onFocus={handleFocus}
+              value={value}
+              {...rest}
+            />
+            <PrimaryButton onClick={sign}>Sign</PrimaryButton>
           </Stack>
         );
       default:
