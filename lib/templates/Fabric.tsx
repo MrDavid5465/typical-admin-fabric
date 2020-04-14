@@ -168,6 +168,24 @@ export default function Raw(props: any): ReactElement {
             </Stack>
           </Stack>
         );
+      case 'multicheckbox':
+        return (
+          <Stack horizontal wrap tokens={{ childrenGap: '0.77em' }}>
+            {Object.entries(rest.fields).map(([k, f]: any) => (
+              <Stack key={k} style={{ minWidth: '24em' }}>
+                <Raw
+                  name={k}
+                  onChange={(subname: string, subvalue: any) =>
+                    onChange(name, { ...value, [subname]: subvalue })
+                  }
+                  value={value[k]}
+                  onFocus={handleFocus}
+                  {...f}
+                />
+              </Stack>
+            ))}
+          </Stack>
+        );
       case 'radio':
         return (
           <Stack className={rest.className}>
@@ -337,9 +355,9 @@ export default function Raw(props: any): ReactElement {
         ampm = value ? (new Date(value).getHours() < 12 ? 'AM' : 'PM') : 'AM';
         return (
           <Stack className={rest.className}>
+            <Label>label</Label>
             <Stack horizontal tokens={{ childrenGap: '0.77em' }}>
               <DatePicker
-                label={label}
                 onSelectDate={(date: Date | null | undefined) =>
                   handleTimeChange(hour, minute, date)
                 }
@@ -548,21 +566,19 @@ export default function Raw(props: any): ReactElement {
         );
       case 'signature':
         return (
-          <Stack
-            horizontal
-            tokens={{ childrenGap: '0.77em' }}
-            verticalAlign={'end'}
-          >
-            <TextField
-              disabled={true}
-              label={label}
-              name={name}
-              onChange={handleChange}
-              onFocus={handleFocus}
-              value={value}
-              {...rest}
-            />
-            <PrimaryButton onClick={sign}>Sign</PrimaryButton>
+          <Stack className={rest.className}>
+            <Label>{label}</Label>
+            <Stack horizontal tokens={{ childrenGap: '0.77em' }}>
+              <TextField
+                disabled={true}
+                name={name}
+                onChange={handleChange}
+                onFocus={handleFocus}
+                value={value}
+                {...rest}
+              />
+              <PrimaryButton onClick={sign}>Sign</PrimaryButton>
+            </Stack>
           </Stack>
         );
       default:
