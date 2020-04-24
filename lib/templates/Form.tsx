@@ -60,6 +60,7 @@ function SubForm<T>(
 
   React.useImperativeHandle(ref, () => ({
     isValid,
+    errors,
     reset: () => resetForm(),
     submit: () => submitForm(),
     values,
