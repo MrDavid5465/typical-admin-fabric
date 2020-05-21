@@ -31,12 +31,7 @@ const List: React.FC<Props> = ({
   csvHeaders,
   pageSize,
 }) => {
-  const [filters, setFilters] = useState<IndexableObject>({
-    name: '',
-    program: '',
-    location: '',
-    category: '',
-  });
+  const [filters, setFilters] = useState<IndexableObject>({});
   const [sort, setSort] = useState<IndexableObject>({});
   var filteredItems = items;
   const style = getStyle();
@@ -68,7 +63,7 @@ const List: React.FC<Props> = ({
     }
   }
   function toCSV(schema: DisplaySchema<any>, items: any[]) {
-    return items.map(i => {
+    return items.map((i) => {
       const item = { ...i };
       Object.entries(schema).forEach(([k, v]: any) => {
         item[k] = v.onRender ? v.onRender({ value: i[k], values: i }) : i[k];
@@ -77,8 +72,15 @@ const List: React.FC<Props> = ({
     });
   }
   Object.entries(filters).forEach(([name, value]) => {
-    if (value !== '') {
+    if (value !== '' && !(name.includes('_gt') || name.includes('_lt'))) {
       filteredItems = matchSorter(filteredItems, value, { keys: [name] });
+    } else if (name.includes('_gt') || name.includes('_lt')) {
+      filteredItems = filteredItems.filter((i) => {
+        const itemValue = i[name.split('_')[0]];
+        return name.split('_')[1] === 'gt'
+          ? itemValue >= value
+          : itemValue < value;
+      });
     }
   });
   Object.entries(sort).forEach(([name, value]: any) => {
@@ -115,6 +117,29 @@ const List: React.FC<Props> = ({
                   value: p.value || '',
                 }))}
               />
+            ) : v.options.filterType && v.options.filterType === 'dateRange' ? (
+              <>
+                <Field
+                  key={`${i}_gt`}
+                  className={style.sm}
+                  label={`${v.label} start`}
+                  errors={[]}
+                  type={'text'}
+                  onChange={handleChange}
+                  name={`${k}_gt`}
+                  value={filters[`${k}_gt`]}
+                />
+                <Field
+                  key={`${i}_lt`}
+                  className={style.sm}
+                  label={`${v.label} end`}
+                  errors={[]}
+                  type={'text'}
+                  onChange={handleChange}
+                  name={`${k}_lt`}
+                  value={filters[`${k}_lt`]}
+                />
+              </>
             ) : (
               <Field
                 key={i}
@@ -169,7 +194,7 @@ const List: React.FC<Props> = ({
               isSortedDescending: sort[k] && sort[k] === 'des',
             };
 
-            col.onRender = values =>
+            col.onRender = (values) =>
               v.onRender ? v.onRender({ values, value: values[k] }) : values[k];
             return col;
           })}
