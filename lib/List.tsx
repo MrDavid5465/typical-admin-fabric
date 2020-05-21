@@ -104,7 +104,7 @@ const List: React.FC<Props> = ({
           .map(([k, v]: any, i: number) =>
             v.options.options ? (
               <Field
-                key={i}
+                key={`${i}`}
                 className={style.sm}
                 label={v.label}
                 errors={[]}
@@ -118,28 +118,33 @@ const List: React.FC<Props> = ({
                 }))}
               />
             ) : v.options.filterType && v.options.filterType === 'dateRange' ? (
-              <>
-                <Field
-                  key={`${i}_gt`}
-                  className={style.sm}
-                  label={`${v.label} start`}
-                  errors={[]}
-                  type={'text'}
-                  onChange={handleChange}
-                  name={`${k}_gt`}
-                  value={filters[`${k}_gt`]}
-                />
-                <Field
-                  key={`${i}_lt`}
-                  className={style.sm}
-                  label={`${v.label} end`}
-                  errors={[]}
-                  type={'text'}
-                  onChange={handleChange}
-                  name={`${k}_lt`}
-                  value={filters[`${k}_lt`]}
-                />
-              </>
+              React.createElement(
+                () => (
+                  <>
+                    <Field
+                      key={`${i}_gt`}
+                      className={style.sm}
+                      label={`${v.label} start`}
+                      errors={[]}
+                      type={'text'}
+                      onChange={handleChange}
+                      name={`${k}_gt`}
+                      value={filters[`${k}_gt`]}
+                    />
+                    <Field
+                      key={`${i}_lt`}
+                      className={style.sm}
+                      label={`${v.label} end`}
+                      errors={[]}
+                      type={'text'}
+                      onChange={handleChange}
+                      name={`${k}_lt`}
+                      value={filters[`${k}_lt`]}
+                    />
+                  </>
+                ),
+                { key: i }
+              )
             ) : (
               <Field
                 key={i}
