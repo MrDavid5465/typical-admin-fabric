@@ -96,7 +96,7 @@ const Update: React.FC<Props> = ({
       )}
       <Stack
         horizontal
-        horizontalAlign={'space-evenly'}
+        horizontalAlign={'space-between'}
         verticalAlign={'center'}
       >
         <h4>Edit {name.singular}</h4>
