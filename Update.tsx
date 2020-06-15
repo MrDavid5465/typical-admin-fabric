@@ -44,7 +44,7 @@ const Update: React.FC<Props> = ({
   const initialValues = !loading && !error && data[queryName];
 
   const [updateItem] = useMutation(dispatcher.edit, {
-    onCompleted: data => {
+    onCompleted: (data) => {
       history.push(match.url.replace('edit', 'show'));
       callBacks &&
         callBacks.edit &&
@@ -94,7 +94,23 @@ const Update: React.FC<Props> = ({
           }}
         />
       )}
-      <h4>Edit {name.singular}</h4>
+      <Stack
+        horizontal
+        horizontalAlign={'space-evenly'}
+        verticalAlign={'center'}
+      >
+        <h4>Edit {name.singular}</h4>
+        {components?.links ? (
+          React.createElement(components.links, {
+            match,
+            name,
+            dispatcher,
+            item: data[queryName],
+          })
+        ) : (
+          <Links match={match} name={name} dispatcher={dispatcher} />
+        )}
+      </Stack>
       <Stack className={style.md}>
         <Form
           ref={editRef}
@@ -111,16 +127,6 @@ const Update: React.FC<Props> = ({
         </Stack>
       </Stack>
       <Separator />
-      {components?.links ? (
-        React.createElement(components.links, {
-          match,
-          name,
-          dispatcher,
-          item: data[queryName],
-        })
-      ) : (
-        <Links match={match} name={name} dispatcher={dispatcher} />
-      )}
     </Stack>
   );
 };

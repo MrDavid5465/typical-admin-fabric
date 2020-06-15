@@ -29,7 +29,7 @@ const New: React.FC<Props> = ({
   const newRef: React.RefObject<any> = createRef();
   const [isValid, setIsValid] = useState(false);
   const [createItem] = useMutation(dispatcher.new, {
-    onCompleted: data => {
+    onCompleted: (data) => {
       history.push(
         match.url.replace('new', `${data[`add${name.singular}`].id}/show`)
       );
@@ -55,7 +55,22 @@ const New: React.FC<Props> = ({
   const style = getStyle();
   return (
     <Stack>
-      <h5>New {name.singular}</h5>
+      <Stack
+        horizontal
+        horizontalAlign={'space-between'}
+        verticalAlign={'center'}
+      >
+        <h5>New {name.singular}</h5>
+        {components?.links ? (
+          React.createElement(components.links, {
+            match,
+            name,
+            dispatcher,
+          })
+        ) : (
+          <Links match={match} name={name} dispatcher={dispatcher} />
+        )}
+      </Stack>
       <Stack className={style.md}>
         <Form
           ref={newRef}
@@ -71,15 +86,6 @@ const New: React.FC<Props> = ({
         </Stack>
       </Stack>
       <Separator />
-      {components?.links ? (
-        React.createElement(components.links, {
-          match,
-          name,
-          dispatcher,
-        })
-      ) : (
-        <Links match={match} name={name} dispatcher={dispatcher} />
-      )}
     </Stack>
   );
 };

@@ -55,7 +55,23 @@ const Show: React.FC<Props> = ({
           }}
         />
       )}
-      <h4>Showing {name.singular}</h4>
+      <Stack
+        horizontal
+        horizontalAlign={'space-between'}
+        verticalAlign={'center'}
+      >
+        <h4>Showing {name.singular}</h4>
+        {components?.links ? (
+          React.createElement(components.links, {
+            match,
+            name,
+            dispatcher,
+            item: data[queryName],
+          })
+        ) : (
+          <Links match={match} name={name} dispatcher={dispatcher} />
+        )}
+      </Stack>
       {Object.entries(schemaDefinition).map(([k, v]: any) => {
         return (
           <p key={k}>
@@ -92,16 +108,6 @@ const Show: React.FC<Props> = ({
           ))}
       </Stack>
       <Separator />
-      {components?.links ? (
-        React.createElement(components.links, {
-          match,
-          name,
-          dispatcher,
-          item: data[queryName],
-        })
-      ) : (
-        <Links match={match} name={name} dispatcher={dispatcher} />
-      )}
     </Stack>
   );
 };

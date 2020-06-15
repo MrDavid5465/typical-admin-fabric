@@ -1,5 +1,5 @@
 import React from 'react';
-import { Link, Name } from './lib';
+import { Link, Name, DefaultButton, Icon, IconButton } from './lib';
 import { getStyle, Stack, Separator } from './lib';
 import { IDispatcher } from '../typical-admin';
 
@@ -20,52 +20,84 @@ const Links: React.FC<Props> = ({ match, name, dispatcher }) => {
 
   if (urls.show.test(match.url)) {
     return (
-      <Stack horizontal tokens={{ childrenGap: '0.77em' }}>
+      <Stack
+        horizontal
+        tokens={{ childrenGap: '0.77em' }}
+        verticalAlign={'center'}
+      >
+        <Link
+          component={({ navigate }: any) => (
+            <IconButton onClick={navigate}>
+              <Icon iconName={'back'} />
+            </IconButton>
+          )}
+          to={`${match.url.replace(`/${match.params.id}/show`, '')}`}
+        />
         {dispatcher.edit && (
           <>
-            <Link
-              className={style.link}
-              to={`${match.url.replace('show', 'edit')}`}
-            >
-              Edit
-            </Link>
             <Separator vertical />
+            <Link
+              component={({ navigate }: any) => (
+                <IconButton onClick={navigate}>
+                  <Icon iconName={'edit'} />
+                </IconButton>
+              )}
+              to={`${match.url.replace('show', 'edit')}`}
+            />
           </>
         )}
-        <Link
-          className={style.link}
-          to={`${match.url.replace(`/${match.params.id}/show`, '')}`}
-        >
-          Back
-        </Link>
       </Stack>
     );
   } else if (urls.edit.test(match.url)) {
     return (
-      <Link className={style.link} to={`${match.url.replace('edit', 'show')}`}>
-        Back
-      </Link>
+      <Link
+        component={({ navigate }: any) => (
+          <IconButton onClick={navigate}>
+            <Icon iconName={'back'} />
+          </IconButton>
+        )}
+        to={`${match.url.replace('edit', 'show')}`}
+      />
     );
   } else if (urls.new.test(match.url)) {
     return (
-      <Link className={style.link} to={`${match.url.replace(`/new`, '')}`}>
-        Back
-      </Link>
+      <Link
+        component={({ navigate }: any) => (
+          <IconButton onClick={navigate}>
+            <Icon iconName={'back'} />
+          </IconButton>
+        )}
+        to={`${match.url.replace(`/new`, '')}`}
+      />
     );
   } else if (urls.root.test(match.url)) {
     return (
-      <Stack horizontal tokens={{ childrenGap: '0.77em' }}>
+      <Stack
+        horizontal
+        tokens={{ childrenGap: '0.77em' }}
+        verticalAlign={'center'}
+      >
+        <Link
+          component={({ navigate }: any) => (
+            <IconButton onClick={navigate}>
+              <Icon iconName={'back'} />
+            </IconButton>
+          )}
+          to={`${match.url.replace(match.url, '')}`}
+        />
         {dispatcher.new && (
           <>
-            <Link className={style.link} to={`${match.url}/new`}>
-              New
-            </Link>
             <Separator vertical />
+            <Link
+              component={({ navigate }: any) => (
+                <IconButton onClick={navigate}>
+                  <Icon iconName={'add'} />
+                </IconButton>
+              )}
+              to={`${match.url}/new`}
+            />
           </>
         )}
-        <Link className={style.link} to={`${match.url.replace(match.url, '')}`}>
-          Back
-        </Link>
       </Stack>
     );
   } else {

@@ -42,26 +42,32 @@ const List: React.FC<Props> = ({
           options={{ onSubscriptionData: () => refetch() }}
         />
       )}
-      <h3>Listing {name.plural}</h3>
+      <Stack
+        horizontal
+        horizontalAlign={'space-between'}
+        verticalAlign={'center'}
+      >
+        <h3>Listing {name.plural}</h3>
+        {components?.links ? (
+          React.createElement(components.links, {
+            match,
+            name,
+            dispatcher,
+          })
+        ) : (
+          <Links match={match} name={name} dispatcher={dispatcher} />
+        )}
+      </Stack>
       <DetailsList
         pageSize={pageSize}
         name={name.plural}
         schema={schemaDefinition}
-        onSelect={item => {
+        onSelect={(item) => {
           history.push(`${match.url}/${item.id}/show`, item);
         }}
         items={items[queryName] || []}
       />
       <br />
-      {components?.links ? (
-        React.createElement(components.links, {
-          match,
-          name,
-          dispatcher,
-        })
-      ) : (
-        <Links match={match} name={name} dispatcher={dispatcher} />
-      )}
     </Stack>
   );
 };
