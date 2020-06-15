@@ -1,6 +1,6 @@
 import React from 'react';
-import { Link, Name, DefaultButton, Icon, IconButton } from './lib';
-import { getStyle, Stack, Separator } from './lib';
+import { Link, Name, Icon, IconButton } from './lib';
+import { Stack, Separator } from './lib';
 import { IDispatcher } from '../typical-admin';
 
 interface Props {
@@ -16,7 +16,6 @@ const Links: React.FC<Props> = ({ match, name, dispatcher }) => {
     root: new RegExp(``),
     show: new RegExp(`/show$`),
   };
-  const style = getStyle();
 
   if (urls.show.test(match.url)) {
     return (
