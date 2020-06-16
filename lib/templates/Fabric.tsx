@@ -609,6 +609,7 @@ export default function Raw(props: any): ReactElement {
               onChange={handleChange}
               onFocus={handleFocus}
               value={value}
+              placeholder={placeholder}
               {...rest}
             />
             <Stack className={style.errors}>
