@@ -77,6 +77,7 @@ const New: React.FC<Props> = ({
           name={'create'}
           form={schemaDefinition}
           onChange={handleChange}
+          fieldProps={schemaDefinition}
         />
         <Stack horizontal tokens={{ childrenGap: '0.77em' }}>
           <PrimaryButton onClick={handleCreate} disabled={!isValid}>

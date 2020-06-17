@@ -118,6 +118,7 @@ const Update: React.FC<Props> = ({
           form={schemaDefinition}
           initialValues={initialValues}
           onChange={handleChange}
+          fieldProps={schemaDefinition}
         />
         <Stack horizontal tokens={{ childrenGap: '0.77em' }}>
           <PrimaryButton onClick={handleSubmit} disabled={!isValid}>
