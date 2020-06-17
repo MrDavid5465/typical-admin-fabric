@@ -79,10 +79,6 @@ export default function Raw(props: any): ReactElement {
       newValue.push(option.key);
       onChange(name, newValue);
     } else {
-      console.log(
-        'remove',
-        newValue.filter((v: any) => v !== option.key)
-      );
       onChange(
         name,
         newValue.filter((v: any) => v !== option.key)
