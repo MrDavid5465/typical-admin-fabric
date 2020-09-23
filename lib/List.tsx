@@ -176,6 +176,13 @@ const List: React.FC<Props> = ({
 
         <DetailsList
           onActiveItemChanged={handleSelect}
+          onRenderRow={(props: any, defaultRender: any) => {
+            return handleSelect !== null && handleSelect !== undefined ? (
+              <div style={{ cursor: 'pointer' }}>{defaultRender(props)}</div>
+            ) : (
+              defaultRender(props)
+            );
+          }}
           items={
             pageSize
               ? filteredItems.slice(page * pageSize, (page + 1) * pageSize)
