@@ -100,7 +100,12 @@ export default function Raw(props: any): ReactElement {
     option !== undefined && onChange(name, option.key);
   }
   function handleSelectDate(date: Date | null | undefined) {
-    date && onChange(name, new Date(format(date, "yyyy-MM-dd'T'00:00:00")));
+    var offset = date?.getTimezoneOffset() || 0;
+    if (date?.getHours() !== 0 && date?.getHours() !== offset / 60) {
+      date?.setHours(date.getHours() + offset / 60);
+    }
+    date &&
+      onChange(name, new Date(format(new Date(date), "yyyy-MM-dd'T'00:00:00")));
   }
 
   function handleOptionChange(_: any, option: any) {
@@ -336,12 +341,14 @@ export default function Raw(props: any): ReactElement {
             <DatePicker
               label={label}
               onSelectDate={handleSelectDate}
-              formatDate={(val: any) => format(parseDate(val), 'yyyy-MM-dd')}
+              formatDate={(val: any) =>
+                format(parseDate(val.toISOString()), 'yyyy-MM-dd')
+              }
               value={
                 new Date(value).toDateString() ===
                   new Date('3000-01-01').toDateString() || value === ''
                   ? undefined
-                  : parseDate(value)
+                  : new Date(parseDate(value))
               }
               onFocus={handleFocus}
               placeholder={placeholder}
