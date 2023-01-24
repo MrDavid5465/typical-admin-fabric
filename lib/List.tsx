@@ -192,24 +192,30 @@ const List: React.FC<Props> = ({
           selectionMode={
             !handleSelect ? SelectionMode.none : SelectionMode.single
           }
-          columns={Object.entries(schema).map(([k, v]: any) => {
-            const col: IColumn = {
-              key: k,
-              name: v.label,
-              minWidth: 100,
-              maxWidth: 200,
-              isMultiline: true,
-              isResizable: true,
-              isFiltered: filters[k] !== '' && filters[k] !== undefined,
-              onColumnClick: handleSort,
-              isSorted: sort[k] && sort[k] !== '',
-              isSortedDescending: sort[k] && sort[k] === 'des',
-            };
+          columns={Object.entries(schema)
+            .filter(([k, v]: any) =>
+              v.options?.hidden === undefined ? true : !v.options.hidden
+            )
+            .map(([k, v]: any) => {
+              const col: IColumn = {
+                key: k,
+                name: v.label,
+                minWidth: 100,
+                maxWidth: 200,
+                isMultiline: true,
+                isResizable: true,
+                isFiltered: filters[k] !== '' && filters[k] !== undefined,
+                onColumnClick: handleSort,
+                isSorted: sort[k] && sort[k] !== '',
+                isSortedDescending: sort[k] && sort[k] === 'des',
+              };
 
-            col.onRender = (values) =>
-              v.onRender ? v.onRender({ values, value: values[k] }) : values[k];
-            return col;
-          })}
+              col.onRender = (values) =>
+                v.onRender
+                  ? v.onRender({ values, value: values[k] })
+                  : values[k];
+              return col;
+            })}
         />
         {pageSize && (
           <Stack horizontal horizontalAlign={'end'} verticalAlign={'center'}>
