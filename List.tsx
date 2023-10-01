@@ -1,7 +1,7 @@
-import React from 'react';
-import { Stack, Name, useQuery } from './lib';
+import React, { useState } from 'react';
+import { Stack, Name, useQuery, IndexableObject, getStyle } from './lib';
 import DetailsList from './lib/List';
-
+import Field from './lib/templates/Fabric';
 import Links from './Links';
 import { IDispatcher, DisplaySchema, IComponents } from '../typical-admin';
 import Subscriber from '../typical-admin/Subscriber';
@@ -22,26 +22,15 @@ const List: React.FC<Props> = ({
   history,
   name,
   schemaDefinition,
-  pageSize,
   components,
 }) => {
-  const queryName = `get${name.plural}`;
-  const { data: items, error, loading, refetch } = useQuery(dispatcher.list);
-  if (error) {
-    return <span>{`error: ${error}`}</span>;
+  const [filters, setFilters] = useState<IndexableObject>({});
+  function handleChange(name: string, value: any) {
+    setFilters({ ...filters, [name]: value });
   }
-
-  if (loading) {
-    return <span>{`loading...`}</span>;
-  }
+  const style = getStyle();
   return (
     <Stack>
-      {dispatcher.subscribe && (
-        <Subscriber
-          document={dispatcher.subscribe}
-          options={{ onSubscriptionData: () => refetch() }}
-        />
-      )}
       <Stack
         horizontal
         horizontalAlign={'space-between'}
@@ -58,14 +47,78 @@ const List: React.FC<Props> = ({
           <Links match={match} name={name} dispatcher={dispatcher} />
         )}
       </Stack>
+      <Stack horizontal tokens={{ childrenGap: '0.77em' }}>
+        {filters &&
+          Object.entries(schemaDefinition)
+            .filter(([, s]: any) => s.options && s.options.filterable)
+            .map(([k, v]: any, i: number) =>
+              v.options.options ? (
+                <Field
+                  key={`${i}`}
+                  className={style.sm}
+                  label={v.label}
+                  errors={[]}
+                  type={'select'}
+                  onChange={handleChange}
+                  name={k}
+                  value={filters[k]}
+                  options={v.options.options.map((p: any) => ({
+                    text: p.text || '',
+                    value: p.value || '',
+                  }))}
+                />
+              ) : v.options.filterType &&
+                v.options.filterType === 'dateRange' ? (
+                React.createElement(
+                  () => (
+                    <>
+                      <Field
+                        key={`${i}_gt`}
+                        className={style.sm}
+                        label={`${v.label} start`}
+                        errors={[]}
+                        type={'text'}
+                        onChange={handleChange}
+                        name={`${k}_gt`}
+                        value={filters[`${k}_gt`]}
+                      />
+                      <Field
+                        key={`${i}_lt`}
+                        className={style.sm}
+                        label={`${v.label} end`}
+                        errors={[]}
+                        type={'text'}
+                        onChange={handleChange}
+                        name={`${k}_lt`}
+                        value={filters[`${k}_lt`]}
+                      />
+                    </>
+                  ),
+                  { key: i }
+                )
+              ) : (
+                <Field
+                  key={i}
+                  className={style.sm}
+                  label={v.label}
+                  errors={[]}
+                  type={'text'}
+                  onChange={handleChange}
+                  name={k}
+                  value={filters[k]}
+                />
+              )
+            )}
+      </Stack>
       <DetailsList
-        pageSize={pageSize}
-        name={name.plural}
+        dispatcher={dispatcher}
+        filters={filters}
+        setFilters={setFilters}
+        name={name}
         schema={schemaDefinition}
         onSelect={(item) => {
           history.push(`${match.url}/${item.id}/show`, item);
         }}
-        items={items[queryName] || []}
       />
       <br />
     </Stack>
