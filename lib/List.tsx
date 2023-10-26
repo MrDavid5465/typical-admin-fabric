@@ -119,7 +119,6 @@ const List: React.FC<Props> = ({
       return item;
     });
   }
-  console.log(pageControl);
   return (
     <>
       {dispatcher && name ? (
