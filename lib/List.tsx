@@ -51,7 +51,7 @@ const List: React.FC<Props> = ({
     start: 0,
     limit: 15,
     orderBy: null,
-    orderByDesc: null,
+    orderBy_desc: null,
   });
   const [sort, setSort] = useState<IndexableObject>({});
   const [isOpen, setIsOpen] = useState<boolean>(false);
@@ -80,7 +80,7 @@ const List: React.FC<Props> = ({
         setPageControl({
           ...pageControl,
           orderBy: column.key,
-          orderByDesc: null,
+          orderBy_desc: null,
         });
         setSort({ [column.key]: 'asc' });
         break;
@@ -88,7 +88,7 @@ const List: React.FC<Props> = ({
         setPageControl({
           ...pageControl,
           orderBy: null,
-          orderByDesc: column.key,
+          orderBy_desc: column.key,
         });
         setSort({ [column.key]: 'des' });
         break;
@@ -96,7 +96,7 @@ const List: React.FC<Props> = ({
         setPageControl({
           ...pageControl,
           orderBy: null,
-          orderByDesc: null,
+          orderBy_desc: null,
         });
         setSort({ [column.key]: '' });
         break;
@@ -104,7 +104,7 @@ const List: React.FC<Props> = ({
         setPageControl({
           ...pageControl,
           orderBy: column.key,
-          orderByDesc: null,
+          orderBy_desc: null,
         });
         setSort({ [column.key]: 'asc' });
         break;
@@ -129,7 +129,7 @@ const List: React.FC<Props> = ({
             _start: pageControl.start,
             _limit: pageControl.limit,
             _orderBy: pageControl.orderBy,
-            _orderBy_desc: pageControl.orderByDesc,
+            _orderBy_desc: pageControl.orderBy_desc,
           }}
         >
           {(getItems: any) => {
