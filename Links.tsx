@@ -1,106 +1,75 @@
 import React from 'react';
-import { Link, Name, Icon, IconButton } from './lib';
-import { Stack, Separator } from './lib';
+import { Name, Icon, IconButton } from './lib';
+import { Stack, Separator, useLocation, useParams, useNavigate } from './lib';
 import { IDispatcher } from '../typical-admin';
 
 interface Props {
-  match: any;
   name: Name;
   dispatcher: IDispatcher;
 }
 
-const Links: React.FC<Props> = ({ match, name, dispatcher }) => {
+const Links: React.FC<Props> = ({ name: _name, dispatcher }) => {
+  const { pathname } =  useLocation();
+  const { id } = useParams();
+  const navigate = useNavigate();
   const urls = {
     edit: new RegExp(`/edit$`),
     new: new RegExp(`/new$`),
-    root: new RegExp(``),
     show: new RegExp(`/show$`),
   };
 
-  if (urls.show.test(match.url)) {
+  if (urls.show.test(pathname)) {
     return (
       <Stack
         horizontal
         tokens={{ childrenGap: '0.77em' }}
         verticalAlign={'center'}
       >
-        <Link
-          component={({ navigate }: any) => (
-            <IconButton onClick={navigate}>
-              <Icon iconName={'back'} />
-            </IconButton>
-          )}
-          to={`${match.url.replace(`/${match.params.id}/show`, '')}`}
-        />
+        <IconButton onClick={() => navigate(pathname.replace(`/${id}/show`, '/'))}>
+          <Icon iconName={'back'} />
+        </IconButton>
         {dispatcher.edit && (
           <>
             <Separator vertical />
-            <Link
-              component={({ navigate }: any) => (
-                <IconButton onClick={navigate}>
-                  <Icon iconName={'edit'} />
-                </IconButton>
-              )}
-              to={`${match.url.replace('show', 'edit')}`}
-            />
+            <IconButton onClick={() => navigate(pathname.replace('show', 'edit'))}>
+              <Icon iconName={'edit'} />
+            </IconButton>
           </>
         )}
       </Stack>
     );
-  } else if (urls.edit.test(match.url)) {
+  } else if (urls.edit.test(pathname)) {
     return (
-      <Link
-        component={({ navigate }: any) => (
-          <IconButton onClick={navigate}>
-            <Icon iconName={'back'} />
-          </IconButton>
-        )}
-        to={`${match.url.replace('edit', 'show')}`}
-      />
+      <IconButton onClick={() => navigate(pathname.replace('edit', 'show'))}>
+        <Icon iconName={'back'} />
+      </IconButton>
     );
-  } else if (urls.new.test(match.url)) {
+  } else if (urls.new.test(pathname)) {
     return (
-      <Link
-        component={({ navigate }: any) => (
-          <IconButton onClick={navigate}>
-            <Icon iconName={'back'} />
-          </IconButton>
-        )}
-        to={`${match.url.replace(`/new`, '')}`}
-      />
+      <IconButton onClick={() => navigate(pathname.replace('/new', ''))}>
+        <Icon iconName={'back'} />
+      </IconButton>
     );
-  } else if (urls.root.test(match.url)) {
+  } else {
     return (
       <Stack
         horizontal
         tokens={{ childrenGap: '0.77em' }}
         verticalAlign={'center'}
       >
-        <Link
-          component={({ navigate }: any) => (
-            <IconButton onClick={navigate}>
-              <Icon iconName={'back'} />
-            </IconButton>
-          )}
-          to={`${match.url.replace(match.url, '')}`}
-        />
+        <IconButton onClick={() => navigate("../")}>
+          <Icon iconName={'back'} />
+        </IconButton>
         {dispatcher.new && (
           <>
             <Separator vertical />
-            <Link
-              component={({ navigate }: any) => (
-                <IconButton onClick={navigate}>
-                  <Icon iconName={'add'} />
-                </IconButton>
-              )}
-              to={`${match.url}/new`}
-            />
+            <IconButton onClick={() => navigate(`${pathname}/new`)}>
+              <Icon iconName={'add'} />
+            </IconButton>
           </>
         )}
       </Stack>
     );
-  } else {
-    return null;
   }
 };
 export default Links;

@@ -6,7 +6,7 @@ import useForm, {
   SchemaDefinition,
   IForm,
   IConverters,
-} from '@octant/per-form';
+} from '../../../per-form';
 
 interface Props<T> {
   converters?: IConverters;

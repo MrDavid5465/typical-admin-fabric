@@ -1,8 +1,10 @@
-import { getTheme, mergeStyleSets } from 'office-ui-fabric-react';
+import { getTheme, mergeStyleSets } from '@fluentui/react';
 import stylesJson from './getStyle';
 
 export { default as Form } from './templates/Form';
-export { useMutation, useQuery } from '@apollo/react-hooks';
+export { default as ThumbnailCard } from './templates/ThumbnailCard';
+export { default as FormCard } from './templates/FormCard';
+export { useMutation, useQuery } from '@apollo/client/react';
 export {
   PrimaryButton,
   DefaultButton,
@@ -14,9 +16,11 @@ export {
   DetailsList,
   IconButton,
   Icon,
-} from 'office-ui-fabric-react';
-export { Link, Route, withRouter } from 'react-router-dom';
-// export { default as List } from './List';
+  Link
+} from '@fluentui/react';
+export { useNavigate, useLocation, useParams } from 'react-router'
+export { Route } from 'react-router-dom';
+export { default as List } from './List';
 export interface Name {
   singular: string;
   plural: string;

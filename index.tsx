@@ -13,7 +13,6 @@ import Show from './Show';
 
 interface Props {
   dispatcher: IDispatcher;
-  match: any;
   name: any;
   components?: IComponents;
   schemaDefinition: ITASchema;
@@ -23,7 +22,6 @@ interface Props {
 
 const Index: React.FC<Props> = ({
   dispatcher,
-  match,
   name,
   schemaDefinition,
   components,
@@ -33,7 +31,6 @@ const Index: React.FC<Props> = ({
   return (
     <ReactiveAdmin
       dispatcher={dispatcher}
-      match={match}
       name={name}
       callBacks={callBacks}
       components={{

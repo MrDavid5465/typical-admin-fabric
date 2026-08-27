@@ -1,16 +1,14 @@
 import React, { createRef, useState } from 'react';
 import { Name, DefaultButton, PrimaryButton, Form } from './lib';
-import { useMutation, Stack, Separator } from './lib';
+import { useMutation, Stack, Separator, useLocation, useNavigate } from './lib';
 
 import Links from './Links';
-import { SchemaDefinition } from '@octant/per-form';
+import { SchemaDefinition } from '../per-form';
 import { IDispatcher, ITACallBacks, IComponents } from '../typical-admin';
 import { getStyle } from './lib';
 
 interface Props {
   dispatcher: IDispatcher;
-  match: any;
-  history: any;
   name: Name;
   schemaDefinition: SchemaDefinition<any>;
   callBacks?: ITACallBacks;
@@ -19,19 +17,19 @@ interface Props {
 
 const New: React.FC<Props> = ({
   dispatcher,
-  match,
-  history,
   name,
   schemaDefinition,
   callBacks,
   components,
 }) => {
+  const {pathname} =  useLocation();
+  const navigate = useNavigate();
   const newRef: React.RefObject<any> = createRef();
   const [isValid, setIsValid] = useState(false);
   const [createItem] = useMutation(dispatcher.new, {
-    onCompleted: (data) => {
-      history.push(
-        match.url.replace('new', `${data[`add${name.singular}`].id}/show`)
+    onCompleted: (data: any) => {
+      navigate(
+        pathname.replace('new', `${data[`add${name.singular}`].id}/show`)
       );
       callBacks && callBacks.new && callBacks.new(data[`add${name.singular}`]);
     },
@@ -63,12 +61,11 @@ const New: React.FC<Props> = ({
         <h5>New {name.singular}</h5>
         {components?.links ? (
           React.createElement(components.links, {
-            match,
             name,
             dispatcher,
           })
         ) : (
-          <Links match={match} name={name} dispatcher={dispatcher} />
+          <Links name={name} dispatcher={dispatcher} />
         )}
       </Stack>
       <Stack className={style.md}>

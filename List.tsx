@@ -1,124 +1,99 @@
-import React, { useState } from 'react';
-import { Stack, Name, useQuery, IndexableObject, getStyle } from './lib';
+import React from 'react';
+import { Stack, Name, useQuery, useLocation, useNavigate } from './lib';
 import DetailsList from './lib/List';
-import Field from './lib/templates/Fabric';
+
 import Links from './Links';
-import { IDispatcher, DisplaySchema, IComponents } from '../typical-admin';
+import { IDispatcher, ListSchema, IComponents } from '../typical-admin';
 import Subscriber from '../typical-admin/Subscriber';
+import { ColumnVisibilityStore } from './lib/columnVisibilityStore';
 
 interface Props {
   dispatcher: IDispatcher;
-  match: any;
-  history: any;
   name: Name;
-  schemaDefinition: DisplaySchema<any>;
+  schemaDefinition: ListSchema<any>;
   pageSize?: number;
   components?: IComponents;
+  // Overrides the query's result field — defaults to `get${name.plural}`.
+  // Mirrors CardList's same-named prop, needed when the display-plural label
+  // doesn't match the actual resolver name.
+  queryResultKey?: string;
+  // Suppresses the built-in "Listing X" heading + Links row, for callers
+  // (e.g. SwitchableList) embedding this with their own shared header.
+  hideHeader?: boolean;
+  // Which item field goes into the show-route URL — defaults to 'id'.
+  // Mirrors CardList's same-named prop, e.g. for records keyed by a
+  // human-readable name elsewhere in the app.
+  idField?: string;
+  // Passed straight through to ./lib/List — see its own doc comments.
+  columnSelectable?: boolean;
+  storageKey?: string;
+  columnVisibilityStore?: ColumnVisibilityStore;
+  alwaysVisibleColumns?: string[];
 }
 
 const List: React.FC<Props> = ({
   dispatcher,
-  match,
-  history,
   name,
   schemaDefinition,
+  pageSize,
   components,
+  queryResultKey,
+  hideHeader,
+  idField,
+  columnSelectable,
+  storageKey,
+  columnVisibilityStore,
+  alwaysVisibleColumns,
 }) => {
-  const [filters, setFilters] = useState<IndexableObject>({});
-  function handleChange(name: string, value: any) {
-    setFilters({ ...filters, [name]: value });
+  const {pathname} =  useLocation();
+  const navigate = useNavigate();
+  const queryName = queryResultKey ?? `get${name.plural}`;
+  const { data: items, error, loading, refetch } : { data?: any; error?: any; loading?: boolean; refetch?: () => void } = useQuery(dispatcher.list);
+  if (error) {
+    return <span>{`error: ${error}`}</span>;
   }
-  const style = getStyle();
+
+  if (loading) {
+    return <span>{`loading...`}</span>;
+  }
   return (
     <Stack>
-      <Stack
-        horizontal
-        horizontalAlign={'space-between'}
-        verticalAlign={'center'}
-      >
-        <h3>Listing {name.plural}</h3>
-        {components?.links ? (
-          React.createElement(components.links, {
-            match,
-            name,
-            dispatcher,
-          })
-        ) : (
-          <Links match={match} name={name} dispatcher={dispatcher} />
-        )}
-      </Stack>
-      <Stack horizontal tokens={{ childrenGap: '0.77em' }}>
-        {filters &&
-          Object.entries(schemaDefinition)
-            .filter(([, s]: any) => s.options && s.options.filterable)
-            .map(([k, v]: any, i: number) =>
-              v.options.options ? (
-                <Field
-                  key={`${i}`}
-                  className={style.sm}
-                  label={v.label}
-                  errors={[]}
-                  type={'select'}
-                  onChange={handleChange}
-                  name={k}
-                  value={filters[k]}
-                  options={v.options.options.map((p: any) => ({
-                    text: p.text || '',
-                    value: p.value || '',
-                  }))}
-                />
-              ) : v.options.filterType &&
-                v.options.filterType === 'dateRange' ? (
-                React.createElement(
-                  () => (
-                    <>
-                      <Field
-                        key={`${i}_gt`}
-                        className={style.sm}
-                        label={`${v.label} start`}
-                        errors={[]}
-                        type={'text'}
-                        onChange={handleChange}
-                        name={`${k}_gt`}
-                        value={filters[`${k}_gt`]}
-                      />
-                      <Field
-                        key={`${i}_lt`}
-                        className={style.sm}
-                        label={`${v.label} end`}
-                        errors={[]}
-                        type={'text'}
-                        onChange={handleChange}
-                        name={`${k}_lt`}
-                        value={filters[`${k}_lt`]}
-                      />
-                    </>
-                  ),
-                  { key: i }
-                )
-              ) : (
-                <Field
-                  key={i}
-                  className={style.sm}
-                  label={v.label}
-                  errors={[]}
-                  type={'text'}
-                  onChange={handleChange}
-                  name={k}
-                  value={filters[k]}
-                />
-              )
-            )}
-      </Stack>
+      {dispatcher.subscribe && (
+        <Subscriber
+          document={dispatcher.subscribe}
+          options={{ onSubscriptionData: () => refetch() }}
+        />
+      )}
+      {!hideHeader && (
+        <Stack
+          horizontal
+          horizontalAlign={'space-between'}
+          verticalAlign={'center'}
+        >
+          <h3>Listing {name.plural}</h3>
+          {components?.links ? (
+            React.createElement(components.links, {
+              name,
+              dispatcher,
+            })
+          ) : (
+            <Links name={name} dispatcher={dispatcher} />
+          )}
+        </Stack>
+      )}
       <DetailsList
-        dispatcher={dispatcher}
-        filters={filters}
-        setFilters={setFilters}
-        name={name}
-        schema={schemaDefinition}
+        pageSize={pageSize}
+        name={name.plural}
+        schema={schemaDefinition.columns}
         onSelect={(item) => {
-          history.push(`${match.url}/${item.id}/show`, item);
+          navigate(`${pathname}/${item[idField ?? 'id']}/show`, item);
         }}
+        items={items[queryName] || []}
+        columnSelectable={columnSelectable}
+        storageKey={storageKey}
+        columnVisibilityStore={columnVisibilityStore}
+        alwaysVisibleColumns={alwaysVisibleColumns}
+        onAdd={schemaDefinition.buttons?.add && dispatcher.new ? () => navigate(`${pathname}/new`) : undefined}
       />
       <br />
     </Stack>

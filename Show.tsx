@@ -1,7 +1,7 @@
 import React from 'react';
 import Links from './Links';
 import Delete from './Delete';
-import { useQuery, Stack, Separator, Name } from './lib';
+import { useQuery, Stack, Separator, Name, useParams } from './lib';
 import {
   IDispatcher,
   ITACallBacks,
@@ -12,8 +12,6 @@ import Subscriber from '../typical-admin/Subscriber';
 
 interface Props {
   dispatcher: IDispatcher;
-  history: any;
-  match: any;
   name: Name;
   schemaDefinition: DisplaySchema<any>;
   callBacks?: ITACallBacks;
@@ -22,16 +20,14 @@ interface Props {
 
 const Show: React.FC<Props> = ({
   dispatcher,
-  history,
-  match,
   name,
   schemaDefinition,
   callBacks,
   components,
 }) => {
-  const id = match.params.id;
+  const {id} = useParams();
   const queryName = `get${name.singular}`;
-  const { data, error, loading, refetch } = useQuery(dispatcher.show, {
+  const { data, error, loading, refetch } : { data?: any; error?: any; loading: boolean; refetch: () => void } = useQuery(dispatcher.show, {
     variables: { id },
   });
 
@@ -63,13 +59,12 @@ const Show: React.FC<Props> = ({
         <h4>Showing {name.singular}</h4>
         {components?.links ? (
           React.createElement(components.links, {
-            match,
             name,
             dispatcher,
             item: data[queryName],
           })
         ) : (
-          <Links match={match} name={name} dispatcher={dispatcher} />
+          <Links name={name} dispatcher={dispatcher} />
         )}
       </Stack>
       {Object.entries(schemaDefinition).map(([k, v]: any) => {
@@ -91,17 +86,13 @@ const Show: React.FC<Props> = ({
             React.createElement(components.delete, {
               id,
               name,
-              match,
-              history,
               dispatcher,
               callBacks,
             })
           ) : (
             <Delete
-              history={history}
               id={id}
               name={name}
-              match={match}
               dispatcher={dispatcher}
               callBacks={callBacks}
             />

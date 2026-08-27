@@ -4,362 +4,320 @@ import {
   getStyle,
   Stack,
   IndexableObject,
-  IconButton,
-  Icon,
   DetailsList,
   SelectionMode,
-  useQuery,
-  Name,
+  IconButton,
+  Icon,
 } from '.';
-import {
-  IColumn,
-  CheckboxVisibility,
-  Dropdown,
-  Text,
-  Modal,
-} from 'office-ui-fabric-react';
-import { CSVLink } from 'react-csv';
-import { DisplaySchema, IDispatcher } from '../../typical-admin';
-import Subscriber from '../../typical-admin/Subscriber';
-import { Query } from '@apollo/react-components';
+import ListControls, { ListButtonConfig, RowButtonConfig } from './ListControls';
+import { ColumnVisibilityStore, localStorageColumnVisibilityStore } from './columnVisibilityStore';
+import { IColumn, CheckboxVisibility } from '@fluentui/react';
+import { matchSorter } from 'match-sorter';
+// import { CSVLink } from 'react-csv';
+import { DisplaySchema } from '../../typical-admin';
 
 interface Props {
-  items?: Array<any>;
-  dispatcher?: IDispatcher;
-  pageControl?: any;
-  filters?: IndexableObject;
-  setFilters?: (filters: any) => void;
+  items: Array<any>;
   schema: DisplaySchema<any>;
   onSelect?: (values: any) => void;
-  name?: Name;
+  name: string;
   csvHeaders?: Array<{ label: string; key: string }>;
-  label?: String;
+  pageSize?: number;
+  // Opts in to a "Columns" picker (checkbox Form, one checkbox per schema
+  // key) letting the user hide/show columns — off by default so every
+  // existing caller renders exactly as before.
+  columnSelectable?: boolean;
+  // Namespace for the saved hidden-column set; only read/used when
+  // columnSelectable is true. Falls back to `name`, but callers should pass
+  // an explicit key since `name` isn't guaranteed unique across every List
+  // instance in the app.
+  storageKey?: string;
+  // Where the hidden-column set is persisted — defaults to localStorage.
+  // Swap in a different implementation (e.g. a backend-backed one) without
+  // touching any of the selection/filtering logic below.
+  columnVisibilityStore?: ColumnVisibilityStore;
+  // Schema keys that can never be hidden (e.g. an identity column).
+  alwaysVisibleColumns?: string[];
+  // Renders a grid-level "Add" control (see ListControls) when provided —
+  // undefined means the caller's schema didn't opt in (ListSchema.buttons.add),
+  // so nothing renders. The wrapper List.tsx computes this from dispatcher.new
+  // + navigate; this component just renders whatever it's handed.
+  onAdd?: () => void;
+  // Arbitrary grid-level actions beyond add/columns (see ListControls).
+  customButtons?: ListButtonConfig[];
+  // Row action buttons (Edit/Load/Delete, etc.) — declarative replacement
+  // for callers hand-writing their own `actions` DisplayField with inline
+  // IconButton JSX. Rendered in the grid's own toolbar (alongside
+  // Add/Columns), enabled only once a row is selected via the grid's
+  // existing click-to-select mechanism (DetailsList's onActiveItemChanged,
+  // already wired below), and act on that selected row — not inline in
+  // each row.
+  rowButtons?: RowButtonConfig[];
 }
 
 const List: React.FC<Props> = ({
   items,
-  dispatcher,
-  filters,
-  setFilters,
   schema,
   onSelect,
   name,
-  csvHeaders,
-  label,
+  csvHeaders: _csvHeaders,
+  pageSize,
+  columnSelectable,
+  storageKey,
+  columnVisibilityStore = localStorageColumnVisibilityStore,
+  alwaysVisibleColumns,
+  onAdd,
+  customButtons,
+  rowButtons,
 }) => {
-  const [pageControl, setPageControl] = useState<any>({
-    start: 0,
-    limit: 15,
-    orderBy: null,
-    orderBy_desc: null,
-  });
+  const [filters, setFilters] = useState<IndexableObject>({});
   const [sort, setSort] = useState<IndexableObject>({});
-  const [isOpen, setIsOpen] = useState<boolean>(false);
-
+  let filteredItems = items;
   const style = getStyle();
+  const [page, setPage] = useState(0);
+  const [selectedItem, setSelectedItem] = useState<any>(null);
+
+  const resolvedStorageKey = storageKey ?? name;
+  const [hiddenColumns, setHiddenColumns] = useState<Set<string>>(
+    () => (columnSelectable ? columnVisibilityStore.readHidden(resolvedStorageKey) : new Set())
+  );
+  const pickableKeys = Object.keys(schema).filter(k => !(alwaysVisibleColumns ?? []).includes(k));
+  const visibleCount = pickableKeys.filter(k => !hiddenColumns.has(k)).length + (alwaysVisibleColumns?.length ?? 0);
+  const totalCount = Object.keys(schema).length;
+  const columnSelectSchema = pickableKeys.reduce((acc, k) => {
+    acc[k] = { type: 'checkbox', label: (schema as any)[k].label };
+    return acc;
+  }, {} as Record<string, any>);
   function handleSelect(item?: any) {
+    if (rowButtons?.length) setSelectedItem(item ?? null);
     onSelect && onSelect(item);
   }
-  function setPage(page: number, rows: number) {
-    setPageControl({
-      ...pageControl,
-      limit: rows,
-      start: (page - 1) * pageControl.limit,
-    });
+  // Row buttons act on whichever row is currently selected — clearing the
+  // selection after acting avoids a stale reference to a since-mutated (or
+  // deleted) row still being the target of the next click.
+  const selectionButtons: ListButtonConfig[] = (rowButtons ?? []).map(btn => ({
+    key: btn.key,
+    label: btn.label,
+    icon: btn.icon,
+    danger: btn.danger,
+    disabled: !selectedItem || !!btn.disabled?.(selectedItem),
+    onClick: () => {
+      if (!selectedItem) return;
+      btn.onClick(selectedItem);
+      setSelectedItem(null);
+    },
+  }));
+  function handleChange(name: string, value: any) {
+    setPage(0);
+    setFilters({ ...filters, [name]: value });
   }
-  function toggleModal() {
-    setIsOpen(!isOpen);
-  }
-
   function handleSort(
     _: React.MouseEvent<HTMLElement, MouseEvent>,
     column: IColumn
   ) {
     switch (sort[column.key]) {
       case '':
-        setPageControl({
-          ...pageControl,
-          orderBy: column.key,
-          orderBy_desc: null,
-        });
         setSort({ [column.key]: 'asc' });
         break;
       case 'asc':
-        setPageControl({
-          ...pageControl,
-          orderBy: null,
-          orderBy_desc: column.key,
-        });
         setSort({ [column.key]: 'des' });
         break;
       case 'des':
-        setPageControl({
-          ...pageControl,
-          orderBy: null,
-          orderBy_desc: null,
-        });
         setSort({ [column.key]: '' });
         break;
       default:
-        setPageControl({
-          ...pageControl,
-          orderBy: column.key,
-          orderBy_desc: null,
-        });
         setSort({ [column.key]: 'asc' });
         break;
     }
   }
-  function toCSV(schema: DisplaySchema<any>, items: any[]) {
-    return items.map((i) => {
-      const item = { ...i };
-      Object.entries(schema).forEach(([k, v]: any) => {
-        item[k] = v.onRender ? v.onRender({ value: i[k], values: i }) : i[k];
+  // Only referenced by the commented-out CSV export block below — commented
+  // out alongside it (rather than deleted) to keep it available if that's
+  // reactivated; a live-but-unreferenced function fails `tsc --noEmit`.
+  // function toCSV(schema: DisplaySchema<any>, items: any[]) {
+  //   return items.map((i) => {
+  //     const item = { ...i };
+  //     Object.entries(schema).forEach(([k, v]: any) => {
+  //       item[k] = v.onRender ? v.onRender({ value: i[k], values: i }) : i[k];
+  //     });
+  //     return item;
+  //   });
+  // }
+  Object.entries(filters).forEach(([name, value]) => {
+    if (value !== '' && !(name.includes('_gt') || name.includes('_lt'))) {
+      filteredItems = matchSorter(filteredItems, value, { keys: [name] });
+    } else if (name.includes('_gt') || name.includes('_lt')) {
+      filteredItems = filteredItems.filter((i) => {
+        const itemValue = i[name.split('_')[0]];
+        return name.split('_')[1] === 'gt'
+          ? itemValue >= value
+          : itemValue < value;
       });
-      return item;
-    });
-  }
+    }
+  });
+  Object.entries(sort).forEach(([name, value]: any) => {
+    if (value !== '' && value !== undefined) {
+      filteredItems = filteredItems.sort((a: any, b: any) =>
+        value === 'asc'
+          ? a[name] > b[name]
+            ? 1
+            : -1
+          : a[name] < b[name]
+          ? 1
+          : -1
+      );
+    }
+  });
   return (
     <>
-      {dispatcher && name ? (
-        <Query
-          query={dispatcher.list}
-          variables={{
-            ...filters,
-            _start: pageControl.start,
-            _limit: pageControl.limit,
-            _orderBy: pageControl.orderBy,
-            _orderBy_desc: pageControl.orderBy_desc,
-          }}
-        >
-          {(getItems: any) => {
-            if (getItems.error) {
-              return <span>{`error: ${getItems.error}`}</span>;
-            }
-
-            if (getItems.loading) {
-              return <span>{`loading...`}</span>;
-            }
-            const queryName = `get${name.plural}`;
-            const rows = getItems.data[queryName] || [];
-            const pageInfo = getItems.data[`${queryName}PageInfo`] || {};
-            return (
-              <Stack>
-                {dispatcher.subscribe && (
-                  <Subscriber
-                    document={dispatcher.subscribe}
-                    options={{ onSubscriptionData: () => getItems.refetch() }}
-                  />
-                )}
-                {csvHeaders && (
-                  <Stack horizontal>
-                    <strong>{name.plural}</strong>:{' '}
-                    <IconButton onClick={toggleModal}>
-                      <Icon iconName={'Download'} />
-                    </IconButton>
-                    <Modal isOpen={isOpen} onDismiss={toggleModal}>
-                      <Stack className={`${style.modalHeader}`}>
-                        Download - {name.plural}
-                      </Stack>
-                      <Stack className={`${style.modalBody}`}>
-                        {isOpen && (
-                          <Query
-                            query={dispatcher.list}
-                            variables={{ ...filters }}
-                          >
-                            {(getAllItems: any) => {
-                              if (getAllItems.error) {
-                                return (
-                                  <span>{`error: ${getItems.error}`}</span>
-                                );
-                              }
-
-                              if (getAllItems.loading) {
-                                return <span>{`loading...`}</span>;
-                              }
-                              const rows = getAllItems.data[queryName] || [];
-                              return (
-                                <CSVLink
-                                  className={style.link}
-                                  headers={csvHeaders}
-                                  data={toCSV(schema, rows)}
-                                  filename={`${name.plural}.csv`}
-                                >
-                                  Download File {`${name.plural}.csv`}
-                                </CSVLink>
-                              );
-                            }}
-                          </Query>
-                        )}
-                      </Stack>
-                    </Modal>
-                  </Stack>
-                )}
-                <DetailsList
-                  onActiveItemChanged={handleSelect}
-                  onRenderRow={(props: any, defaultRender: any) => {
-                    return handleSelect !== null &&
-                      handleSelect !== undefined ? (
-                      <div style={{ cursor: 'pointer' }}>
-                        {defaultRender(props)}
-                      </div>
-                    ) : (
-                      defaultRender(props)
-                    );
-                  }}
-                  items={rows}
-                  checkboxVisibility={CheckboxVisibility.hidden}
-                  selectionMode={
-                    !handleSelect ? SelectionMode.none : SelectionMode.single
-                  }
-                  columns={Object.entries(schema)
-                    .filter(([k, v]: any) =>
-                      v.options?.hidden === undefined ? true : !v.options.hidden
-                    )
-                    .map(([k, v]: any) => {
-                      const col: IColumn = {
-                        key: k,
-                        name: v.label,
-                        minWidth: 100,
-                        maxWidth: 200,
-                        isMultiline: true,
-                        isResizable: true,
-                        isFiltered:
-                          filters &&
-                          filters[k] !== '' &&
-                          filters[k] !== undefined,
-                        onColumnClick: handleSort,
-                        isSorted: sort[k] && sort[k] !== '',
-                        isSortedDescending: sort[k] && sort[k] === 'des',
-                      };
-
-                      col.onRender = (values) =>
-                        v.onRender
-                          ? v.onRender({ values, value: values[k] })
-                          : values[k];
-                      return col;
-                    })}
-                />
-                {pageInfo && pageControl?.limit && (
-                  <Stack
-                    horizontal
-                    horizontalAlign={'end'}
-                    verticalAlign={'center'}
-                    tokens={{ childrenGap: '0.77em' }}
-                  >
-                    <Text>Rows</Text>
-                    <Dropdown
-                      onChange={(_: any, option: any) => {
-                        console.log(option);
-                        setPage(pageInfo.page, option.key);
-                      }}
-                      selectedKey={pageControl.limit}
-                      options={[
-                        { text: '5', value: 5 },
-                        { text: '10', value: 10 },
-                        { text: '15', value: 15 },
-                        { text: '20', value: 20 },
-                        { text: '25', value: 25 },
-                        { text: '50', value: 50 },
-                        { text: '100', value: 100 },
-                      ].map(
-                        (
-                          {
-                            text,
-                            value: optValue,
-                          }: { text: string; value: any },
-                          _: number
-                        ) => ({ key: optValue, text })
-                      )}
-                    >
-                      {}
-                    </Dropdown>
-                    <IconButton
-                      disabled={pageInfo.page === 1}
-                      onClick={() =>
-                        setPage(pageInfo.page - 1, pageControl.limit)
-                      }
-                    >
-                      <Icon iconName={'Remove'} />
-                    </IconButton>
-                    <Text>
-                      Page {pageInfo.page} of {pageInfo.totalPages}
-                    </Text>
-                    <IconButton
-                      disabled={pageInfo.page >= pageInfo.totalPages}
-                      onClick={() =>
-                        setPage(pageInfo.page + 1, pageControl.limit)
-                      }
-                    >
-                      <Icon iconName={'Add'} />
-                    </IconButton>
-                  </Stack>
-                )}
-              </Stack>
-            );
-          }}
-        </Query>
-      ) : (
-        items && (
-          <Stack>
-            {csvHeaders && (
-              <Stack horizontal>
-                <strong>{label ? label : name?.plural}</strong>:{' '}
-                <CSVLink
-                  className={style.link}
-                  headers={csvHeaders}
-                  data={toCSV(schema, items || [])}
-                  filename={`${label ? label : name?.plural}.csv`}
-                >
-                  <Icon iconName={'Download'} />
-                </CSVLink>
-              </Stack>
-            )}
-            <DetailsList
-              onActiveItemChanged={handleSelect}
-              onRenderRow={(props: any, defaultRender: any) => {
-                return handleSelect !== null && handleSelect !== undefined ? (
-                  <div style={{ cursor: 'pointer' }}>
-                    {defaultRender(props)}
-                  </div>
-                ) : (
-                  defaultRender(props)
-                );
-              }}
-              items={items}
-              checkboxVisibility={CheckboxVisibility.hidden}
-              selectionMode={
-                !handleSelect ? SelectionMode.none : SelectionMode.single
-              }
-              columns={Object.entries(schema)
-                .filter(([k, v]: any) =>
-                  v.options?.hidden === undefined ? true : !v.options.hidden
-                )
-                .map(([k, v]: any) => {
-                  const col: IColumn = {
-                    key: k,
-                    name: v.label,
-                    minWidth: 100,
-                    maxWidth: 200,
-                    isMultiline: true,
-                    isResizable: true,
-                    isFiltered:
-                      filters && filters[k] !== '' && filters[k] !== undefined,
-                    onColumnClick: handleSort,
-                    isSorted: sort[k] && sort[k] !== '',
-                    isSortedDescending: sort[k] && sort[k] === 'des',
-                  };
-
-                  col.onRender = (values) =>
-                    v.onRender
-                      ? v.onRender({ values, value: values[k] })
-                      : values[k];
-                  return col;
-                })}
-            />
+      <Stack horizontal tokens={{ childrenGap: '0.77em' }}>
+        {Object.entries(schema)
+          .filter(([, s]: any) => s.options && s.options.filterable)
+          .map(([k, v]: any, i: number) =>
+            v.options.options ? (
+              <Field
+                key={`${i}`}
+                className={style.sm}
+                label={v.label}
+                errors={[]}
+                type={'select'}
+                onChange={handleChange}
+                name={k}
+                value={filters[k]}
+                options={v.options.options.map((p: any) => ({
+                  text: p.text || '',
+                  value: p.value || '',
+                }))}
+              />
+            ) : v.options.filterType && v.options.filterType === 'dateRange' ? (
+              React.createElement(
+                () => (
+                  <>
+                    <Field
+                      key={`${i}_gt`}
+                      className={style.sm}
+                      label={`${v.label} start`}
+                      errors={[]}
+                      type={'text'}
+                      onChange={handleChange}
+                      name={`${k}_gt`}
+                      value={filters[`${k}_gt`]}
+                    />
+                    <Field
+                      key={`${i}_lt`}
+                      className={style.sm}
+                      label={`${v.label} end`}
+                      errors={[]}
+                      type={'text'}
+                      onChange={handleChange}
+                      name={`${k}_lt`}
+                      value={filters[`${k}_lt`]}
+                    />
+                  </>
+                ),
+                { key: i }
+              )
+            ) : (
+              <Field
+                key={i}
+                className={style.sm}
+                label={v.label}
+                errors={[]}
+                type={'text'}
+                onChange={handleChange}
+                name={k}
+                value={filters[k]}
+              />
+            )
+          )}
+      </Stack>
+      <Stack>
+        {/* {csvHeaders && (
+          <Stack horizontal>
+            <strong>{name}</strong>:{' '}
+            <CSVLink
+              className={style.link}
+              headers={csvHeaders}
+              data={toCSV(schema, filteredItems)}
+              filename={`${name}.csv`}
+            >
+              <Icon iconName={'Download'} />
+            </CSVLink>
           </Stack>
-        )
-      )}
+        )} */}
+
+        <div style={{ position: 'relative', paddingTop: (columnSelectable || onAdd || customButtons?.length || rowButtons?.length) ? 36 : 0 }}>
+          <ListControls
+            columnSelectable={columnSelectable}
+            visibleCount={visibleCount}
+            totalCount={totalCount}
+            columnSelectSchema={columnSelectSchema}
+            initialValues={Object.fromEntries(pickableKeys.map(k => [k, !hiddenColumns.has(k)]))}
+            pickableKeys={pickableKeys}
+            onColumnsChange={(nextHidden) => {
+              setHiddenColumns(nextHidden);
+              columnVisibilityStore.writeHidden(resolvedStorageKey, nextHidden);
+            }}
+            onAdd={onAdd}
+            customButtons={[...(customButtons ?? []), ...selectionButtons]}
+          />
+          <DetailsList
+            onActiveItemChanged={handleSelect}
+            onRenderRow={(props: any, defaultRender: any) => {
+              return handleSelect !== null && handleSelect !== undefined ? (
+                <div style={{ cursor: 'pointer' }}>{defaultRender(props)}</div>
+              ) : (
+                defaultRender(props)
+              );
+            }}
+            items={
+              pageSize
+                ? filteredItems.slice(page * pageSize, (page + 1) * pageSize)
+                : filteredItems
+            }
+            checkboxVisibility={CheckboxVisibility.hidden}
+            selectionMode={
+              !handleSelect ? SelectionMode.none : SelectionMode.single
+            }
+            columns={Object.entries(schema)
+              .filter(([k]) => !columnSelectable || (alwaysVisibleColumns ?? []).includes(k) || !hiddenColumns.has(k))
+              .map(([k, v]: any) => {
+                const col: IColumn = {
+                  key: k,
+                  name: v.label,
+                  minWidth: v.options?.minWidth ?? 100,
+                  maxWidth: v.options?.maxWidth ?? 200,
+                  isMultiline: true,
+                  isResizable: true,
+                  isFiltered: filters[k] !== '' && filters[k] !== undefined,
+                  onColumnClick: handleSort,
+                  isSorted: sort[k] && sort[k] !== '',
+                  isSortedDescending: sort[k] && sort[k] === 'des',
+                };
+
+                col.onRender = (values) =>
+                  v.onRender ? v.onRender({ values, value: values[k] }) : values[k];
+                return col;
+              })}
+          />
+        </div>
+        {pageSize && (
+          <Stack horizontal horizontalAlign={'end'} verticalAlign={'center'}>
+            <IconButton disabled={page === 0} onClick={() => setPage(page - 1)}>
+              <Icon iconName={'Remove'} />
+            </IconButton>
+            <IconButton
+              disabled={filteredItems.length - page * pageSize <= pageSize}
+              onClick={() => setPage(page + 1)}
+            >
+              <Icon iconName={'Add'} />
+            </IconButton>
+            Page {page + 1} of{' '}
+            {filteredItems.length % pageSize
+              ? Math.floor(filteredItems.length / pageSize) + 1
+              : Math.floor(filteredItems.length / pageSize)}
+          </Stack>
+        )}
+      </Stack>
     </>
   );
 };

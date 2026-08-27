@@ -6,19 +6,18 @@ import {
   DefaultButton,
   PrimaryButton,
   Form,
+  useParams,
 } from './lib';
-import { useMutation, useQuery } from './lib';
+import { useMutation, useQuery, useLocation, useNavigate } from './lib';
 
 import Links from './Links';
 import { IDispatcher, ITACallBacks, IComponents } from '../typical-admin';
-import { SchemaDefinition } from '@octant/per-form';
+import { SchemaDefinition } from '../per-form';
 import { getStyle } from './lib';
 import Subscriber from '../typical-admin/Subscriber';
 
 interface Props {
   dispatcher: IDispatcher;
-  history: any;
-  match: any;
   name: Name;
   schemaDefinition: SchemaDefinition<any>;
   callBacks?: ITACallBacks;
@@ -27,25 +26,25 @@ interface Props {
 
 const Update: React.FC<Props> = ({
   dispatcher,
-  history,
-  match,
   name,
   schemaDefinition,
   callBacks,
   components,
 }) => {
-  const id = match.params.id;
+  const {pathname} =  useLocation();
+  const navigate = useNavigate();
+  const { id } = useParams();
   const [isValid, setIsValid] = useState(false);
   const queryName = `get${name.singular}`;
 
-  const { data, error, loading, refetch } = useQuery(dispatcher.show, {
+  const { data, error, loading, refetch } : { data?: any; error?: any; loading: boolean; refetch: () => void } = useQuery(dispatcher.show, {
     variables: { id },
   });
   const initialValues = !loading && !error && data[queryName];
 
   const [updateItem] = useMutation(dispatcher.edit, {
-    onCompleted: (data) => {
-      history.push(match.url.replace('edit', 'show'));
+    onCompleted: (data: any) => {
+      navigate(pathname.replace('edit', 'show'));
       callBacks &&
         callBacks.edit &&
         callBacks.edit(data[`add${name.singular}`]);
@@ -102,13 +101,12 @@ const Update: React.FC<Props> = ({
         <h4>Edit {name.singular}</h4>
         {components?.links ? (
           React.createElement(components.links, {
-            match,
             name,
             dispatcher,
             item: data[queryName],
           })
         ) : (
-          <Links match={match} name={name} dispatcher={dispatcher} />
+          <Links name={name} dispatcher={dispatcher} />
         )}
       </Stack>
       <Stack className={style.md}>

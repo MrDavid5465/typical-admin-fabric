@@ -1,13 +1,11 @@
 import React from 'react';
-import { useMutation, Name, PrimaryButton, Stack } from './lib';
+import { useMutation, Name, PrimaryButton, Stack, useLocation, useNavigate } from './lib';
 
 import Prompt from './Prompt';
 import { IDispatcher, ITACallBacks } from '../typical-admin';
 
 interface Props {
   dispatcher: IDispatcher;
-  history: any;
-  match: any;
   id: any;
   name: Name;
   callBacks?: ITACallBacks;
@@ -15,17 +13,17 @@ interface Props {
 
 const Delete: React.FC<Props> = ({
   dispatcher,
-  history,
-  match,
   id,
   name,
   callBacks,
 }) => {
+  const {pathname} =  useLocation();
+  const navigate = useNavigate();
   const [open, setOpen] = React.useState(false);
 
   const [removeItem] = useMutation(dispatcher.delete, {
-    onCompleted: data => {
-      history.push(match.url.replace(`/${id}/show`, ''));
+    onCompleted: (data: any) => {
+      navigate(pathname.replace(`/${id}/show`, ''));
       callBacks &&
         callBacks.delete &&
         callBacks.delete(data[`remove${name.singular}`]);

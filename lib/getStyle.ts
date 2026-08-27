@@ -1,5 +1,4 @@
-import { IStyle } from '@uifabric/styling';
-import { ITheme, FontWeights } from 'office-ui-fabric-react';
+import { IStyle, ITheme, FontWeights } from '@fluentui/react';
 
 export interface Style {
   link: IStyle;
