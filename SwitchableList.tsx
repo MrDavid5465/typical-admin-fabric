@@ -33,6 +33,10 @@ interface Props {
   cardWidth?: number;
   thumbnailHeight?: number;
   thumbnailFit?: 'cover' | 'contain';
+  // Card-view-only: extra per-card controls, forwarded to CardList — see its
+  // own doc comment. The table view has no equivalent slot, so a caller that
+  // needs the control in both places should add a schema column too.
+  cardActions?: (item: any) => React.ReactNode;
   defaultView?: ViewMode;
   // List-view-only — forwarded straight through to lib/List, see its own
   // doc comments. Card view has no notion of columns, so these are simply
@@ -62,6 +66,7 @@ const SwitchableList: React.FC<Props> = ({
   cardWidth,
   thumbnailHeight,
   thumbnailFit,
+  cardActions,
   defaultView = 'list',
   columnSelectable,
   storageKey,
@@ -128,6 +133,7 @@ const SwitchableList: React.FC<Props> = ({
           cardWidth={cardWidth}
           thumbnailHeight={thumbnailHeight}
           thumbnailFit={thumbnailFit}
+          cardActions={cardActions}
           hideHeader
         />
       ) : (

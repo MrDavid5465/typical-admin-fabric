@@ -19,6 +19,7 @@ import {
 } from '@fluentui/react';
 import { format, parseISO } from 'date-fns';
 import ListField from './ListField';
+import CheckField from './CheckField';
 interface IndexableObject {
   [key: string]: any;
 }
@@ -783,6 +784,35 @@ export default function Raw(props: any): ReactElement {
             </Stack>
           </Stack>
         );
+      // A pass/fail indicator with an optional one-click remedy — see
+      // CheckField for why the state lives there rather than here.
+      //
+      // `rest.check` decides the state. It's a callback over the form's own
+      // values rather than a stored field, because what's being checked is
+      // the world (a file exists, a rule is installed, a launch option is
+      // set), not something the form owns: there is nothing to persist and
+      // nothing for the user to edit.
+      case 'check': {
+        // Given only this field's own value: the schema is built inside the
+        // consuming component, so anything else the check needs is already
+        // in scope through the closure.
+        const status = typeof rest.check === 'function'
+          ? rest.check(value)
+          : (rest.check ?? 'unknown');
+        return (
+          <CheckField
+            label={label}
+            status={status}
+            okText={rest.okText}
+            failText={rest.failText}
+            unknownText={rest.unknownText}
+            description={rest.description}
+            action={rest.action}
+            actionWhenOk={rest.actionWhenOk}
+          />
+        );
+      }
+
       case 'button': {
         // Real Fluent buttons, not a manually-styled raw <button> — the
         // previous version approximated Fluent's primary color but lacked

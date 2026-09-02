@@ -43,6 +43,16 @@ interface Props {
   // elsewhere in the app; this lets the URL match that convention. Never
   // affects the delete mutation, which always uses the real item.id.
   idField?: string;
+  // Extra per-card controls, rendered in the header row to the left of the
+  // built-in edit/delete buttons — i.e. above the thumbnail.
+  //
+  // Exists because the built-in actions are fixed (edit, delete) while some
+  // collections need a per-item control that only makes sense for them, such
+  // as marking one car as the favourite. Callers get the whole item so the
+  // control can reflect that row's own state, and are responsible for
+  // stopping propagation if their control shouldn't also trigger the card's
+  // navigation.
+  cardActions?: (item: any) => React.ReactNode;
 }
 
 // Only mounted when dispatcher.delete exists — useMutation must never be
@@ -87,6 +97,7 @@ const CardList: React.FC<Props> = ({
   hideHeader,
   idField,
   basePath,
+  cardActions,
 }) => {
   const theme = getTheme();
   const { pathname } = useLocation();
@@ -161,8 +172,9 @@ const CardList: React.FC<Props> = ({
               thumbnailUrl={thumbnailUrl}
               onThumbnailClick={() => navigate(`${routeBase}/${routeId}/show`)}
               actions={
-                (dispatcher.edit || dispatcher.delete) ? (
+                (cardActions || dispatcher.edit || dispatcher.delete) ? (
                   <>
+                    {cardActions?.(item)}
                     {dispatcher.edit && (
                       <IconButton
                         iconProps={{ iconName: 'Settings' }}
