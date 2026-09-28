@@ -68,7 +68,7 @@ const WideList: React.FC<Props> = ({
       {dispatcher.subscribe && (
         <Subscriber
           document={dispatcher.subscribe}
-          options={{ onSubscriptionData: () => refetch && refetch() }}
+          options={{ onData: () => refetch && refetch() }}
         />
       )}
       {!hideHeader && (

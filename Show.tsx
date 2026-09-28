@@ -47,7 +47,7 @@ const Show: React.FC<Props> = ({
           options={{
             variables:
               (dispatcher.subscribeToOne !== undefined && { id }) || {},
-            onSubscriptionData: () => refetch(),
+            onData: () => refetch(),
           }}
         />
       )}

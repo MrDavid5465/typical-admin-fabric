@@ -133,7 +133,7 @@ const List: React.FC<Props> = ({
       {dispatcher.subscribe && (
         <Subscriber
           document={dispatcher.subscribe}
-          options={{ onSubscriptionData: () => refetch() }}
+          options={{ onData: () => refetch() }}
         />
       )}
       {!hideHeader && (
