@@ -15,21 +15,15 @@ import {
   DatePicker,
   PrimaryButton,
   DefaultButton,
-  DirectionalHint,
 } from '@fluentui/react';
 import { format, parseISO } from 'date-fns';
 import ListField from './ListField';
 import CheckField from './CheckField';
+import SearchableMultiSelect from './SearchableMultiSelect';
+import { dropdownMenuProps, comboBoxMenuProps } from './menuCallout';
 interface IndexableObject {
   [key: string]: any;
 }
-// Used by the `timetoday` field's three hour/minute/AM-PM ComboBoxes.
-// Without an explicit directionalHint, Fluent's default auto-collision
-// logic picks a side based on available viewport space — inside a popup
-// already anchored to a screen corner (e.g. the Day/Night sim panel's
-// gear-icon Callout), there's little room below/above, so it was falling
-// back to opening sideways instead of the expected downward dropdown.
-const TIME_COMBO_CALLOUT_PROPS = { directionalHint: DirectionalHint.bottomLeftEdge, directionalHintFixed: true };
 const getStyle = () => {
   const theme = getTheme();
   return mergeStyleSets({
@@ -264,6 +258,7 @@ export default function Raw(props: any): ReactElement {
         return (
           <Stack className={rest.className}>
             <Dropdown
+              {...dropdownMenuProps}
               label={label}
               onChange={handleSelect}
               onFocus={handleFocus}
@@ -287,10 +282,39 @@ export default function Raw(props: any): ReactElement {
             </Stack>
           </Stack>
         );
-      case 'multi-select':
+      case 'multi-select': {
+        // rest.searchable: true adds a filter box at the top of the menu, to
+        // narrow a long list. Destructured out so it never reaches the
+        // Dropdown as an unknown prop.
+        const { searchable, ...multiRest } = rest;
+        if (searchable) {
+          return (
+            <Stack className={rest.className}>
+              <SearchableMultiSelect
+                label={label}
+                onToggle={(option: any) => handleMultiSelect(undefined, option)}
+                onFocus={handleFocus}
+                selectedKeys={value || []}
+                options={options.map(
+                  ({ text, value: optValue, disabled }: { text: string; value: any; disabled?: boolean }) =>
+                    ({ key: optValue, text, disabled })
+                )}
+                {...multiRest}
+              />
+              <Stack className={style.errors}>
+                <Feedback
+                  and={[!isValid, isTouched]}
+                  errors={errors}
+                  dirty={isDirty}
+                />
+              </Stack>
+            </Stack>
+          );
+        }
         return (
           <Stack className={rest.className}>
             <Dropdown
+              {...dropdownMenuProps}
               label={label}
               multiSelect
               onChange={handleMultiSelect}
@@ -302,7 +326,7 @@ export default function Raw(props: any): ReactElement {
                   _: number
                 ) => ({ key: optValue, text, disabled })
               )}
-              {...rest}
+              {...multiRest}
             >
               {}
             </Dropdown>
@@ -315,6 +339,7 @@ export default function Raw(props: any): ReactElement {
             </Stack>
           </Stack>
         );
+      }
       // rest.gamepadMappings: GamepadMapping[] (id/name/mappingType/index),
       // rest.gamepadFilter?: 'button' | 'axis' narrows the list. Value is a
       // mapping id, or '' / undefined for unassigned.
@@ -334,6 +359,7 @@ export default function Raw(props: any): ReactElement {
               </>
             ) : (
               <Dropdown
+                {...dropdownMenuProps}
                 label={label}
                 onChange={(_: any, option: any) => onChange(name, option?.key || undefined)}
                 onFocus={handleFocus}
@@ -430,6 +456,7 @@ export default function Raw(props: any): ReactElement {
             </Stack>
             <Stack horizontal>
               <ComboBox
+                {...comboBoxMenuProps}
                 allowFreeform
                 autoComplete={'on'}
                 selectedKey={option.index}
@@ -518,6 +545,7 @@ export default function Raw(props: any): ReactElement {
                 {...rest}
               />
               <ComboBox
+                {...comboBoxMenuProps}
                 selectedKey={hour}
                 options={[
                   { key: -1, text: '' },
@@ -544,6 +572,7 @@ export default function Raw(props: any): ReactElement {
                 }}
               />
               <ComboBox
+                {...comboBoxMenuProps}
                 selectedKey={minute}
                 options={
                   rest.minuteOptions?.length > 0
@@ -567,6 +596,7 @@ export default function Raw(props: any): ReactElement {
                 }
               />
               <ComboBox
+                {...comboBoxMenuProps}
                 selectedKey={ampm}
                 options={[
                   { key: 'AM', text: 'AM' },
@@ -597,6 +627,7 @@ export default function Raw(props: any): ReactElement {
         return (
           <Stack>
             <ComboBox
+              {...comboBoxMenuProps}
               label={label}
               allowFreeform
               autoComplete={'on'}
@@ -646,7 +677,7 @@ export default function Raw(props: any): ReactElement {
             <Label>{label}</Label>
             <Stack horizontal tokens={{ childrenGap: '0.77em' }}>
               <ComboBox
-                calloutProps={TIME_COMBO_CALLOUT_PROPS}
+                {...comboBoxMenuProps}
                 selectedKey={hour}
                 options={[
                   { key: -1, text: '' },
@@ -673,7 +704,7 @@ export default function Raw(props: any): ReactElement {
                 }}
               />
               <ComboBox
-                calloutProps={TIME_COMBO_CALLOUT_PROPS}
+                {...comboBoxMenuProps}
                 selectedKey={minute}
                 options={
                   rest.minuteOptions?.length > 0
@@ -697,7 +728,7 @@ export default function Raw(props: any): ReactElement {
                 }
               />
               <ComboBox
-                calloutProps={TIME_COMBO_CALLOUT_PROPS}
+                {...comboBoxMenuProps}
                 selectedKey={ampm}
                 options={[
                   { key: 'AM', text: 'AM' },
