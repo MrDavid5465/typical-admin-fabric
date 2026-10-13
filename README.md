@@ -44,6 +44,19 @@ your-app/src/lib/typical-admin-fabric/
 your-app/src/lib/per-form/
 ```
 
+Get them from:
+
+- https://github.com/MrDavid5465/typical-admin
+- https://github.com/MrDavid5465/typical-admin-fabric
+- https://github.com/MrDavid5465/per-form
+
+```sh
+cd your-app/src/lib
+git clone https://github.com/MrDavid5465/typical-admin
+git clone https://github.com/MrDavid5465/typical-admin-fabric
+git clone https://github.com/MrDavid5465/per-form
+```
+
 ### 2. Peer npm packages
 
 Versions known to work together:
