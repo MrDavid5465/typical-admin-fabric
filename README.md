@@ -30,6 +30,7 @@ Before writing any code with these libraries, read the skills in
 Skills in a cloned repository are not loaded automatically unless the agent
 was started inside that repository, so open the `SKILL.md` files directly.
 For the backend, read typiql-rs's `.claude/skills/typiql-api`.
+For the app shell around these screens (header, nav, theming, settings), read [denim](../denim)'s `.claude/skills/denim-app-shell`.
 
 ## Install
 
@@ -49,6 +50,7 @@ Get them from:
 - file:///var/mnt/Media/david-source/repos/typiql-standins/typical-admin
 - file:///var/mnt/Media/david-source/repos/typiql-standins/typical-admin-fabric
 - file:///var/mnt/Media/david-source/repos/typiql-standins/per-form
+- optional app shell, cloned alongside as `../denim`: https://github.com/MrDavid5465/denim
 
 ```sh
 cd your-app/src/lib
