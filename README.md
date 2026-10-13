@@ -46,15 +46,15 @@ your-app/src/lib/per-form/
 
 Get them from:
 
-- https://github.com/MrDavid5465/typical-admin
-- https://github.com/MrDavid5465/typical-admin-fabric
-- https://github.com/MrDavid5465/per-form
+- file:///var/mnt/Media/david-source/repos/typiql-standins/typical-admin
+- file:///var/mnt/Media/david-source/repos/typiql-standins/typical-admin-fabric
+- file:///var/mnt/Media/david-source/repos/typiql-standins/per-form
 
 ```sh
 cd your-app/src/lib
-git clone https://github.com/MrDavid5465/typical-admin
-git clone https://github.com/MrDavid5465/typical-admin-fabric
-git clone https://github.com/MrDavid5465/per-form
+git clone file:///var/mnt/Media/david-source/repos/typiql-standins/typical-admin
+git clone file:///var/mnt/Media/david-source/repos/typiql-standins/typical-admin-fabric
+git clone file:///var/mnt/Media/david-source/repos/typiql-standins/per-form
 ```
 
 ### 2. Peer npm packages
