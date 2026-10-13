@@ -6,7 +6,7 @@ import Links from './Links';
 import { IDispatcher, ListSchema, IComponents } from '../typical-admin';
 import Subscriber from '../typical-admin/Subscriber';
 import { ColumnVisibilityStore } from './lib/columnVisibilityStore';
-import { confirmAsync } from '../denim/components/ConfirmDialog';
+import { confirmAsync } from './ConfirmDialog';
 
 interface Props {
   dispatcher: IDispatcher;

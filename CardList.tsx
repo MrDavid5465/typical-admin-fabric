@@ -3,7 +3,7 @@ import { Stack, IconButton, Icon, getTheme, ThumbnailCard, useQuery, useMutation
 import Links from './Links';
 import { IDispatcher, DisplaySchema, IComponents, Name } from '../typical-admin';
 import Subscriber from '../typical-admin/Subscriber';
-import { confirmAsync } from '../denim/components/ConfirmDialog';
+import { confirmAsync } from './ConfirmDialog';
 
 interface Props {
   dispatcher: IDispatcher;
