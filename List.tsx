@@ -21,6 +21,12 @@ interface Props {
   // Suppresses the built-in "Listing X" heading + Links row, for callers
   // (e.g. SwitchableList) embedding this with their own shared header.
   hideHeader?: boolean;
+  // Where this list's show/new routes live — defaults to the current URL,
+  // which is right when the list is the whole page. A list that stays on
+  // screen next to a detail pane (denim-fabric's AdminMasterDetail) passes
+  // its mount point, or a click while a detail is open would append to the
+  // detail's URL.
+  basePath?: string;
   // Which item field goes into the show-route URL — defaults to 'id'.
   // Mirrors CardList's same-named prop, e.g. for records keyed by a
   // human-readable name elsewhere in the app.
@@ -78,6 +84,7 @@ const List: React.FC<Props> = ({
   components,
   queryResultKey,
   hideHeader,
+  basePath,
   idField,
   columnSelectable,
   storageKey,
@@ -85,6 +92,7 @@ const List: React.FC<Props> = ({
   alwaysVisibleColumns,
 }) => {
   const {pathname} =  useLocation();
+  const base = basePath !== undefined ? basePath.replace(/\/+$/, '') : pathname;
   const navigate = useNavigate();
   const queryName = queryResultKey ?? `get${name.plural}`;
   const { data: items, error, loading, refetch } : { data?: any; error?: any; loading?: boolean; refetch?: () => void } = useQuery(dispatcher.list);
@@ -163,13 +171,13 @@ const List: React.FC<Props> = ({
         name={name.plural}
         schema={columns}
         onSelect={(item) => {
-          navigate(`${pathname}/${item[idField ?? 'id']}/show`, item);
+          navigate(`${base}/${item[idField ?? 'id']}/show`, item);
         }}
         items={items[queryName] || []}
         columnSelectable={columnSelectable}
         storageKey={storageKey}
         columnVisibilityStore={columnVisibilityStore}
-        onAdd={schemaDefinition.buttons?.add && dispatcher.new ? () => navigate(`${pathname}/new`) : undefined}
+        onAdd={schemaDefinition.buttons?.add && dispatcher.new ? () => navigate(`${base}/new`) : undefined}
         // The delete column is an action, not data — it must never be one of
         // the columns the column-picker can hide.
         alwaysVisibleColumns={

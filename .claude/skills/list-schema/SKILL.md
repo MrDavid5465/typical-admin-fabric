@@ -99,6 +99,11 @@ Shared props:
 
 `List` / `SwitchableList` (table view):
 
+- `basePath` (`List` only): where its show/new routes live, default the
+  current URL. Set it when the list stays on screen beside a detail pane
+  (denim-fabric's `AdminMasterDetail` does), or a row click while a detail is
+  open nests under the open record's URL.
+
 - `columnSelectable`: a "Columns" picker (itself a per-form checkbox `Form`);
   `storageKey` (where the hidden set is saved, default `name.plural`; pass an
   explicit one), `columnVisibilityStore` (swap localStorage for another
