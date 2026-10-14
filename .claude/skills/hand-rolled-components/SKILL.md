@@ -27,7 +27,9 @@ Look in `typical-admin-fabric/lib/templates/` before writing a style value:
 | `ThumbnailCard` | Fixed-size tile: header row (title + `actions`), image or custom content below, `onThumbnailClick`. |
 | `WideCard` | Horizontal card: image left, children right, whole card clickable. Same accent + shadow as `FormCard`. |
 | `CheckField` | Pass/fail/unknown status row with an optional remedy button. |
-| `SearchableMultiSelect`, `ListField` | Inputs behind the `multi-select` (searchable) and `list` field types. |
+| `SearchableSelect`, `SearchableMultiSelect`, `ListField` | Inputs behind the searchable `select` / `multi-select` and the `list` field types. Both searchable ones are thin wrappers over `SearchableDropdown` (a Dropdown with a filter box pinned to its menu, keyboard highlight, desktop-only autofocus). |
+| `ComboBoxField` | Input behind the `combobox` field type: type-ahead that filters the menu, stores option keys while showing their text, optional pick-or-create (`create`). |
+| `optionSearch.ts` | `normalizeText` / `optionMatches` / `findOptionByText`: the one definition of "matches what was typed" (trimmed, case-insensitive). |
 | `menuCallout.ts` | `dropdownMenuProps` / `comboBoxMenuProps`: open menus directly under their box. Spread them first on any new `Dropdown`/`ComboBox`. |
 
 `FormCard`, `ThumbnailCard` and `WideCard` are exported from

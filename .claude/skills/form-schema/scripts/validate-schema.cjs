@@ -186,6 +186,18 @@ function checkFile(filePath) {
             findings.push({ level: 'WARN', line: lineOf(node),
               message: `type: 'gamepad-select' without 'gamepadMappings' renders an empty "No mappings" note. It is an app-specific leftover in Fabric.tsx; prefer 'select'.` });
           }
+          if (names.has('searchable') && typeValue !== 'select' && typeValue !== 'multi-select') {
+            findings.push({ level: 'WARN', line: lineOf(node),
+              message: `'searchable' only does something on 'select' and 'multi-select'. For type-ahead use type: 'combobox'.` });
+          }
+          if ((names.has('create') || names.has('createLabel')) && typeValue !== 'combobox') {
+            findings.push({ level: 'WARN', line: lineOf(node),
+              message: `'create'/'createLabel' only do something on type: 'combobox' (pick-or-create).` });
+          }
+          if (names.has('createLabel') && !names.has('create')) {
+            findings.push({ level: 'WARN', line: lineOf(node),
+              message: `'createLabel' without 'create': there is no create row to label.` });
+          }
           if (typeValue === 'password') {
             findings.push({ level: 'WARN', line: lineOf(node),
               message: `type: 'password' is NOT masked: Fabric.tsx never forwards 'type' to the TextField. Use type: 'custom' with a masked input.` });

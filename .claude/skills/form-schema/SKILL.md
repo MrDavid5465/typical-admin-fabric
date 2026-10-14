@@ -81,10 +81,10 @@ These are the defaults that break typiql mutations:
 |---|---|---|---|
 | *(anything else)*, e.g. `text`, `number`, `email`, `textarea` | none | string | Fluent `TextField`. `type: 'password'` is **not masked** (`type` is never forwarded). Use `multiline: true` for a textarea. |
 | `checkbox` | none | boolean | Fluent `Checkbox`. Use `defaultValue: false`. |
-| `select` | `options: {text, value, disabled?}[]` | option value | Fluent `Dropdown`. |
-| `multi-select` | `options` | array of values | `searchable: true` adds a filter box. **Bug:** it pushes into the current array in place, so on an edit page (initial value from Apollo, frozen in dev) selecting an option throws `object is not extensible`. |
+| `select` | `options: {text, value, disabled?}[]` | option value | Fluent `Dropdown`. `searchable: true` pins a filter box to the top of the menu; see below. |
+| `multi-select` | `options` | array of values | `searchable: true` adds the same filter box; selected options stay listed while filtering. Each change is a new array, so a frozen initial value (Apollo's, on an edit page) is fine. |
 | `radio` | `options: {text, value}[]` | string | Fluent `ChoiceGroup`. **Bug:** it is never given the current value, so an initial/loaded value isn't shown as selected, and the submitted value is the option key as a string. Prefer `select`. |
-| `combobox` | `options` | string | Fluent `ComboBox` with free text allowed. |
+| `combobox` | `options` | option value, or free text | Type-ahead: typing opens the menu and narrows it to options containing the text. Choosing an option (or typing its text, ignoring case and surrounding spaces) stores its `value` and the box shows its `text`, so a stored id displays as its name on an edit page. Other text is stored as typed, unless `create` is set. `create?: (text) => Promise<value>`, `createLabel?: string \| (text) => string`; see below. |
 | `picker` | `options: {text, value}[]` | array of strings | Add/remove list of chosen options; values must be strings (sorted with `toLowerCase`). |
 | `multicheckbox` | `fields: { [key]: Field }` | `{ [key]: boolean }` | A group of nested fields stored as one object. |
 | `date` | none | `Date` | Fluent `DatePicker`, text input allowed. See gotcha 4. |
@@ -101,6 +101,78 @@ These are the defaults that break typiql mutations:
 
 The validator knows this catalog and warns on typos (did-you-mean), missing
 required extras, dead properties and the gotchas above.
+
+## Picking from a list: `select` + `searchable`, `combobox`, `combobox` + `create`
+
+| You want | Use |
+|---|---|
+| Choose from a fixed list, long enough to want a filter | `select` (or `multi-select`) with `searchable: true` |
+| Type-ahead where free text is a valid answer (suggestions, not a rule) | `combobox` |
+| Pick a related record, or create it on the spot (a tag on a task, a project in quick entry) | `combobox` with `create` |
+
+Don't hand-build a picker for any of these: if one of them falls short,
+extend `SearchableDropdown.tsx` / `ComboBoxField.tsx` instead.
+
+**`searchable: true`** (`select`, `multi-select`): a filter box at the top of
+the menu narrows it to options whose text or value contains the typed text,
+case-insensitively; the box keeps showing the selection. On desktop the
+filter takes focus when the menu opens; on a touch screen it doesn't (no
+on-screen keyboard until the filter is tapped). With the filter focused:
+ArrowDown/ArrowUp move the highlight (the first match is highlighted as
+you type), Enter picks it (a `select` closes, a `multi-select` toggles it and
+stays open), Escape closes, Tab closes and moves on.
+
+**`combobox`**: the value is the chosen option's `value` (stored as the
+key, shown as the `text`). Text that matches no option:
+
+- without `create`: is the value, as typed. Fine for a free-text field with
+  suggestions; wrong for a field that stores an id.
+- with `create`: is never stored. The menu offers `Create "<text>"` (label
+  from `createLabel`: a verb like `'New tag'`, or `(text) => string` for the
+  whole label). Choosing it, or Enter while it is the highlighted row,
+  awaits `create(trimmedText)`, adds the new option to the list at once and
+  selects the key it resolved with. If `create` throws or rejects, its
+  message is shown under the field and the typed text kept (Enter retries).
+  Leaving the field without choosing keeps the text in the box, empties the
+  value and says it wasn't saved; it never creates on blur. Text matching an
+  existing option ignoring case and surrounding spaces selects that option
+  instead, so `"groceries "` never makes a second `Groceries`.
+
+`create` with a typiql `add<Singular>` mutation, in a component that also
+loads the options (see the next section for why the schema is built there):
+
+```tsx
+import { gql } from '@apollo/client';
+import { useMutation, useQuery } from '@apollo/client/react';
+
+const GET_PROJECTS = gql`query getProjects { getProjects { id name } }`;
+const ADD_PROJECT = gql`mutation addProject($values: ProjectInput!) { addProject(values: $values) { id name } }`;
+
+function QuickTask() {
+  const { data } = useQuery<any>(GET_PROJECTS);
+  const [addProject] = useMutation<any>(ADD_PROJECT, { refetchQueries: ['getProjects'] });
+  if (!data) return null;
+  const form: SchemaDefinition<any> = {
+    title: { type: 'text', label: 'Task', required: true },
+    projectId: {
+      type: 'combobox', label: 'Project', defaultNull: null,
+      options: data.getProjects.map((p: any) => ({ text: p.name, value: p.id })),
+      create: async (name: string) => {
+        const { data: added } = await addProject({ variables: { values: { name } } });
+        if (!added) throw new Error('The project was not created.');
+        return added.addProject.id; // the key the field stores
+      },
+      createLabel: 'New project',
+    },
+  };
+  return <Form name="task" form={form} />;
+}
+```
+
+Apollo rejects on a GraphQL error by default, so a server-side failure
+shows under the field with no extra code. Don't `key` the Form on the
+options query here: the refetch after a create would remount it and drop
+what has been typed in the other fields.
 
 ## Options that depend on data
 

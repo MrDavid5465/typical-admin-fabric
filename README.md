@@ -264,6 +264,57 @@ Why the form fields look like that (all verified against the source):
   See the `form-schema` skill for the workaround.
 - `multiline: true` is passed straight through to Fluent's `TextField`.
 
+## Picking from a list
+
+Three field types pick a value from options; which one depends on whether
+the list is fixed and whether new entries are allowed:
+
+| You want | Use | Value |
+|---|---|---|
+| Choose from a fixed list, long enough to want a filter | `select` with `searchable: true` (or `multi-select` with `searchable: true`) | the option's `value` |
+| Type-ahead with free text allowed (suggestions, not a rule) | `combobox` | the option's `value` when one is chosen, otherwise the text as typed |
+| Pick a related record, or create it on the spot (a tag on a task, a project in quick entry) | `combobox` with `create` | always a record key: free text is never stored as one |
+
+`create` receives the trimmed text and resolves with the new record's key.
+With typiql that is the type's `add<Singular>` mutation:
+
+```tsx
+import { gql } from '@apollo/client';
+import { useMutation, useQuery } from '@apollo/client/react';
+import { Form } from '../lib/typical-admin-fabric/lib';
+import type { SchemaDefinition } from '../lib/per-form';
+
+const GET_TAGS = gql`query getTags { getTags { id name } }`;
+const ADD_TAG = gql`mutation addTag($values: TagInput!) { addTag(values: $values) { id name } }`;
+
+export function TaskForm({ task }: { task?: any }) {
+  const { data } = useQuery<any>(GET_TAGS);
+  const [addTag] = useMutation<any>(ADD_TAG, { refetchQueries: ['getTags'] });
+  if (!data) return null;
+
+  const form: SchemaDefinition<any> = {
+    title: { type: 'text', label: 'Title', required: true },
+    tagId: {
+      type: 'combobox', label: 'Tag', defaultNull: null,
+      options: data.getTags.map((t: any) => ({ text: t.name, value: t.id })),
+      // A rejected promise (a GraphQL error, say) is shown under the field.
+      create: async (name: string) => {
+        const { data: added } = await addTag({ variables: { values: { name } } });
+        if (!added) throw new Error('The tag was not created.');
+        return added.addTag.id;
+      },
+      createLabel: 'New tag', // the row reads: New tag "<text>"
+    },
+  };
+  return <Form name="task" form={form} initialValues={task} />;
+}
+```
+
+The new option shows and is selected as soon as `create` resolves; the
+refetch only brings the parent's list up to date. Text matching an existing
+option (ignoring case and surrounding spaces) selects it instead of creating
+a duplicate. See the `form-schema` skill for the details.
+
 This exact example type-checks with the packages above and was driven in
 Chromium against a typiql-shaped endpoint (list, show, create, edit, delete,
 live refetch).
@@ -280,7 +331,7 @@ live refetch).
 | `lib/List.tsx` | the schema-driven `DetailsList` wrapper (sorting, filters, column picker, toolbar/row buttons) |
 | `lib/templates/Fabric.tsx` | per-form field template: maps each field `type` to a Fluent control |
 | `lib/templates/Form.tsx` | `Form`: per-form + Fabric.tsx, with an imperative ref (`isValid`, `submit()`, `reset()`) |
-| `lib/templates/*Card.tsx`, `CheckField.tsx`, `ListField.tsx`, `SearchableMultiSelect.tsx` | reusable atoms |
+| `lib/templates/*Card.tsx`, `CheckField.tsx`, `ListField.tsx`, `SearchableDropdown.tsx` (+ `SearchableSelect`/`SearchableMultiSelect`), `ComboBoxField.tsx` | reusable atoms |
 
 ## License
 
