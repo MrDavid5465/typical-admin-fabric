@@ -11,7 +11,7 @@ import {
 import { useMutation, useQuery, useLocation, useNavigate } from './lib';
 
 import Links from './Links';
-import { IDispatcher, ITACallBacks, IComponents } from '../typical-admin';
+import { IDispatcher, ITACallBacks, IComponents, ITALabels, label, resolveLabels } from '../typical-admin';
 import { SchemaDefinition } from '../per-form';
 import { getStyle } from './lib';
 import Subscriber from '../typical-admin/Subscriber';
@@ -22,6 +22,7 @@ interface Props {
   schemaDefinition: SchemaDefinition<any>;
   callBacks?: ITACallBacks;
   components?: IComponents;
+  labels?: ITALabels;
 }
 
 const Update: React.FC<Props> = ({
@@ -30,6 +31,7 @@ const Update: React.FC<Props> = ({
   schemaDefinition,
   callBacks,
   components,
+  labels,
 }) => {
   const {pathname} =  useLocation();
   const navigate = useNavigate();
@@ -98,15 +100,16 @@ const Update: React.FC<Props> = ({
         horizontalAlign={'space-between'}
         verticalAlign={'center'}
       >
-        <h4>Edit {name.singular}</h4>
+        <h4>{label(resolveLabels(name, labels), 'editHeading')}</h4>
         {components?.links ? (
           React.createElement(components.links, {
             name,
             dispatcher,
             item: data[queryName],
+            labels,
           })
         ) : (
-          <Links name={name} dispatcher={dispatcher} />
+          <Links name={name} dispatcher={dispatcher} labels={labels} />
         )}
       </Stack>
       <Stack className={style.md}>

@@ -2,13 +2,14 @@ import React from 'react';
 import { useMutation, Name, PrimaryButton, Stack, useLocation, useNavigate } from './lib';
 
 import Prompt from './Prompt';
-import { IDispatcher, ITACallBacks } from '../typical-admin';
+import { IDispatcher, ITACallBacks, ITALabels, label, resolveLabels } from '../typical-admin';
 
 interface Props {
   dispatcher: IDispatcher;
   id: any;
   name: Name;
   callBacks?: ITACallBacks;
+  labels?: ITALabels;
 }
 
 const Delete: React.FC<Props> = ({
@@ -16,6 +17,7 @@ const Delete: React.FC<Props> = ({
   id,
   name,
   callBacks,
+  labels,
 }) => {
   const {pathname} =  useLocation();
   const navigate = useNavigate();
@@ -40,7 +42,7 @@ const Delete: React.FC<Props> = ({
     <Stack>
       <PrimaryButton text="Delete" onClick={() => setOpen(true)} />
       <Prompt
-        message={`Are you sure you'd like to delete this ${name.singular}?`}
+        message={label(resolveLabels(name, labels), 'deletePrompt')}
         isOpen={open}
         toggle={handleSubmit}
       />

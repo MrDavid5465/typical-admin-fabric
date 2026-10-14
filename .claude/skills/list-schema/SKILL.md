@@ -96,6 +96,8 @@ Shared props:
 - `hideHeader`: drop the "Listing X" heading and nav row.
 - `pageSize`: client-side paging (`List` defaults to 20 via ReactiveAdmin's
   `pageSize` prop).
+- `labels`: display text (heading, delete tooltip and confirmation); passed
+  by ReactiveAdmin. See `reactive-admin`, "Display labels".
 
 `List` / `SwitchableList` (table view):
 
@@ -103,6 +105,17 @@ Shared props:
   current URL. Set it when the list stays on screen beside a detail pane
   (denim-fabric's `AdminMasterDetail` does), or a row click while a detail is
   open nests under the open record's URL.
+- `selectOnClick` (`List` only): open a row on click/tap or Enter instead of
+  whenever the active row changes. The default can't reopen the row that is
+  still active (the one whose detail was just closed) and opens rows as the
+  arrow keys move. For a list beside its detail; `AdminMasterDetail` sets it.
+- `selectedKey` (`List` only): highlight the row whose `idField` equals it
+  (`null`: none). When it changes, the list turns to that row's page and
+  scrolls it into view; paging by hand doesn't move it back. Undefined (the
+  default) keeps Fluent's own selection. `AdminMasterDetail` passes the id
+  from the URL, so deep links, Back/Forward and new records are highlighted.
+- The list keeps its rows on screen while it refetches (a live event, a
+  save elsewhere), so page, sort and filters survive.
 
 - `columnSelectable`: a "Columns" picker (itself a per-form checkbox `Form`);
   `storageKey` (where the hidden set is saved, default `name.plural`; pass an
@@ -123,6 +136,14 @@ Shared props:
 
 `WideList`: `titleField` (required), `secondaryField`, `thumbnailField`.
 
+### Touch targets
+
+The pager, toolbar (Add, Columns, custom buttons), per-row delete and the
+`Links` icon buttons are Fluent's 32px `IconButton`s with a mouse, and 44px
+where the main pointer is coarse (`@media (pointer: coarse)`: phones, touch
+screens). Use `touchIconButtonStyles` from `lib/touch.ts` for your own icon
+buttons: `<IconButton styles={touchIconButtonStyles} ... />`.
+
 ### Toolbar and row buttons: only on `lib/List`
 
 The lower-level grid `lib/List.tsx` (exported as `List` from
@@ -130,7 +151,8 @@ The lower-level grid `lib/List.tsx` (exported as `List` from
 (`{ key, label, icon, onClick, disabled?, danger? }[]`, grid-level) and
 `rowButtons` (`{ key, label, icon, onClick(item), disabled?(item), danger? }[]`,
 acting on the click-selected row), plus `items`, `schema`, `onSelect`,
-`name`, `onAdd`. The ReactiveAdmin `List` slot does **not** forward these, and
+`name`, `onAdd`, and `selectOnClick` / `selectedKey` / `keyField` (the row
+key for `selectedKey`, default `id`) as above. The ReactiveAdmin `List` slot does **not** forward these, and
 it navigates to the show page on row click, so `rowButtons` only make sense in
 your own list built on `lib/List` (copy `List.tsx` and pass them through).
 

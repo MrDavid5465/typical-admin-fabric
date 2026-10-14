@@ -121,11 +121,11 @@ Its plural is the snake_case name plus `es` after s/x/z, `ies` in place of
 a final `y` not preceded by a/e/o, else `s`: `Category` -> `getCategories`, `Box` -> `getBoxes`,
 `Person` -> `getPersons`. `name.plural` must be **that stem**.
 
-`name.singular` and `name.plural` are also the page headings ("Showing
-Project", "Listing Projects", "Edit Project"). There is no separate display
-label. If the generated name reads badly as a heading, either accept it or
-override the slot. For the list only, `List`/`CardList`/`WideList`/
-`SwitchableList` accept `queryResultKey` to read a different result field:
+Without a `labels` prop, `name.singular` and `name.plural` are also the page
+headings ("Listing Projects", "Showing Project", "Edit Project"). Pass
+`labels` for display text of its own (next section). For the list only,
+`List`/`CardList`/`WideList`/`SwitchableList` accept `queryResultKey` to read
+a different result field:
 
 ```tsx
 components={{ list: (p: any) => <List {...p} queryResultKey="getPersons" /> }}
@@ -134,6 +134,45 @@ components={{ list: (p: any) => <List {...p} queryResultKey="getPersons" /> }}
 In dev, the Fluent `List`/`CardList` log a `console.error` naming the
 available fields when `get${plural}` is missing, instead of silently showing
 an empty list.
+
+## Display labels: headings that read like English
+
+`name` stays the GraphQL stem; `labels` is what people read. Passing
+`labels`, even `{}`, switches every heading and button text to readable
+defaults; without it nothing changes, so existing screens keep their text.
+
+```tsx
+<ReactiveAdmin
+  dispatcher={dispatcher}
+  name={{ singular: 'Device', plural: 'Devices' }}   // getDevices, addDevice, ...
+  labels={{}}                                        // "Devices", "Device", "Edit device", "New device"
+  schemaDefinition={schemaDefinition}
+/>
+
+// A type name that reads badly, plus one heading of its own:
+labels={{ singular: 'Rig device', plural: 'Rig devices', showHeading: '{singular} details' }}
+```
+
+| Key | Default with `labels` | Without `labels` (legacy) |
+|---|---|---|
+| `singular`, `plural` | `name.singular`, `name.plural` | same |
+| `listHeading` | `{plural}` | `Listing {plural}` |
+| `showHeading` | `{singular}` | `Showing {singular}` |
+| `newHeading` | `New {singularLower}` | `New {singular}` |
+| `editHeading` | `Edit {singularLower}` | `Edit {singular}` |
+| `deleteTitle` (row/card delete tooltip) | `Delete {singularLower}` | `Delete {singular}` |
+| `deleteConfirm` (row/card delete) | `Delete this {singularLower}? This cannot be undone.` | `Delete this {singular}? ...` |
+| `deletePrompt` (Show's Delete) | same as `deleteConfirm` | `Are you sure you'd like to delete this {singular}?` |
+| `back`, `edit`, `add` (icon buttons' accessible names) | `Back`, `Edit {singularLower}`, `Add {singularLower}` | same |
+
+- Placeholders: `{singular}`, `{plural}`, `{singularLower}`, `{pluralLower}`
+  (`lowerFirst`: "Device" -> "device", "GPU" stays "GPU"). A value may also
+  be a function of those: ``showHeading: v => `About this ${v.singularLower}` ``.
+- ReactiveAdmin passes `labels` to every slot (default or overridden) and to
+  `components.links`. In your own slot, use the same helpers:
+  `label(resolveLabels(name, labels), 'showHeading')` (from `typical-admin`).
+- denim-fabric's `AdminMasterDetail` always uses the readable defaults.
+- Same concept as typical-admin-wc's `labels` (`src/admin/labels.js`).
 
 ## The dispatcher slots and routes
 
@@ -180,10 +219,12 @@ skills. The same per-form schema object usually serves `new` and `edit`.
 ## The override contract
 
 Every slot, default or overridden, receives exactly the same props:
-`{ dispatcher, name, schemaDefinition: <that slot's part>, callBacks, components }`.
+`{ dispatcher, name, schemaDefinition: <that slot's part>, callBacks, components, labels }`.
 `components` recognizes `list`, `new`, `show`, `edit`, `delete`, `links`
 (`links` replaces the back/edit/add row; `delete` replaces the delete control
-inside `Show`).
+inside `Show`). The default `Links` takes `hideBack` (drop the back arrow
+when a container already provides one; denim-fabric's master-detail passes it
+on phones, to an overriding `links` too) and `hideAdd`.
 
 The cheapest customizations, in order:
 
@@ -252,14 +293,9 @@ already refetch the list/show queries (`refetchQueries`).
 
 ## Known library bugs to work around (don't "fix" them unasked)
 
-- Clicking a column header in the Fluent `List` (sorting) with no filter
-  active throws `Cannot assign to read only property '0'` in dev, because it
-  sorts Apollo's frozen result array in place. The list crashes.
 - A failed mutation (e.g. a GraphQL type error) shows nothing in the UI; the
   form just stays put. Check the network response (the `playwright-verify`
   driver prints GraphQL errors).
-- Each live event makes a default list re-render through "loading...", which
-  unmounts and remounts the grid (resets paging/scroll).
 - Fluent `Create`/`Update` pass the raw schema as `fieldProps`, so
   per-form's own keys (`required`, `defaultValue`, `validations`, `section`)
   reach the Fluent control too. `required: true` adds Fluent's asterisk;

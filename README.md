@@ -224,7 +224,8 @@ const dispatcher: IDispatcher = {
   subscribeToOne: gql`subscription projectChanged($id: String) { projectChanged(id: $id) { operationName value { id } } }`,
 };
 
-// singular/plural are BOTH the GraphQL name stems and the page headings.
+// singular/plural are the GraphQL name stems; without `labels` they are
+// also the headings ("Listing Projects"). See "Display labels" below.
 const name = { singular: 'Project', plural: 'Projects' };
 
 const display = {
@@ -251,6 +252,28 @@ export default function ProjectsAdmin() {
   return <ReactiveAdmin dispatcher={dispatcher} name={name} schemaDefinition={schemaDefinition} />;
 }
 ```
+
+### Display labels
+
+`name` is also printed as-is: "Listing Projects", "Showing Project", "Edit
+Project". Pass `labels` for headings that read like English, kept apart from
+the GraphQL names (existing screens without `labels` don't change):
+
+```tsx
+<ReactiveAdmin dispatcher={dispatcher} name={name} schemaDefinition={schemaDefinition} labels={{}} />
+// "Projects", "Project", "New project", "Edit project"
+
+<ReactiveAdmin ... name={{ singular: 'Device', plural: 'Devices' }}
+  labels={{ singular: 'Rig device', plural: 'Rig devices', showHeading: '{singular} details' }} />
+// "Rig devices", "Rig device details", "Edit rig device", "Delete this rig device? ..."
+```
+
+Keys: `singular`, `plural`, `listHeading`, `showHeading`, `newHeading`,
+`editHeading`, `deleteTitle`, `deleteConfirm`, `deletePrompt`, `back`,
+`edit`, `add`; templates take `{singular}`, `{plural}`, `{singularLower}`,
+`{pluralLower}`, or are functions of them. The defaults and the helpers
+(`resolveLabels`, `label`) are in typical-admin's `labels.ts`; the
+`reactive-admin` skill has the table.
 
 Why the form fields look like that (all verified against the source):
 
@@ -324,11 +347,12 @@ live refetch).
 | File | What it is |
 |---|---|
 | `index.tsx` | `ReactiveAdmin` with Fluent defaults for every slot (`pageSize` prop, default 20) |
-| `List.tsx` | default list: Fluent `DetailsList`, row click opens show, per-row delete when `dispatcher.delete` |
+| `List.tsx` | default list: Fluent `DetailsList`, row click opens show, per-row delete when `dispatcher.delete`; `selectOnClick` / `selectedKey` for a list beside its detail |
 | `CardList.tsx`, `WideList.tsx`, `SwitchableList.tsx` | alternative `list` slots: thumbnail cards, wide cards, table/card toggle |
 | `Show.tsx`, `Create.tsx`, `Update.tsx`, `Delete.tsx`, `Links.tsx`, `Prompt.tsx` | default slots and their pieces |
 | `ConfirmDialog.tsx` | `confirmAsync()` + `<ConfirmDialogHost />` |
-| `lib/List.tsx` | the schema-driven `DetailsList` wrapper (sorting, filters, column picker, toolbar/row buttons) |
+| `lib/List.tsx` | the schema-driven `DetailsList` wrapper (sorting, filters, column picker, toolbar/row buttons, controlled highlight) |
+| `lib/touch.ts` | `touchIconButtonStyles`: icon buttons 44px on touch screens (`pointer: coarse`), 32px with a mouse |
 | `lib/templates/Fabric.tsx` | per-form field template: maps each field `type` to a Fluent control |
 | `lib/templates/Form.tsx` | `Form`: per-form + Fabric.tsx, with an imperative ref (`isValid`, `submit()`, `reset()`) |
 | `lib/templates/*Card.tsx`, `CheckField.tsx`, `ListField.tsx`, `SearchableDropdown.tsx` (+ `SearchableSelect`/`SearchableMultiSelect`), `ComboBoxField.tsx` | reusable atoms |

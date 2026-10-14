@@ -4,7 +4,7 @@ import { useMutation, Stack, Separator, useLocation, useNavigate } from './lib';
 
 import Links from './Links';
 import { SchemaDefinition } from '../per-form';
-import { IDispatcher, ITACallBacks, IComponents } from '../typical-admin';
+import { IDispatcher, ITACallBacks, IComponents, ITALabels, label, resolveLabels } from '../typical-admin';
 import { getStyle } from './lib';
 
 interface Props {
@@ -13,6 +13,7 @@ interface Props {
   schemaDefinition: SchemaDefinition<any>;
   callBacks?: ITACallBacks;
   components?: IComponents;
+  labels?: ITALabels;
 }
 
 const New: React.FC<Props> = ({
@@ -21,6 +22,7 @@ const New: React.FC<Props> = ({
   schemaDefinition,
   callBacks,
   components,
+  labels,
 }) => {
   const {pathname} =  useLocation();
   const navigate = useNavigate();
@@ -58,14 +60,15 @@ const New: React.FC<Props> = ({
         horizontalAlign={'space-between'}
         verticalAlign={'center'}
       >
-        <h5>New {name.singular}</h5>
+        <h5>{label(resolveLabels(name, labels), 'newHeading')}</h5>
         {components?.links ? (
           React.createElement(components.links, {
             name,
             dispatcher,
+            labels,
           })
         ) : (
-          <Links name={name} dispatcher={dispatcher} />
+          <Links name={name} dispatcher={dispatcher} labels={labels} />
         )}
       </Stack>
       <Stack className={style.md}>

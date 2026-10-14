@@ -102,11 +102,16 @@ root, or with `NODE_PATH=<app>/node_modules`.
 - Submit / reset on the generated create and edit pages:
   `button:has-text('Submit')`, `button:has-text('Reset')`.
 - Table rows: `.ms-DetailsRow`; clicking any cell text opens the show page.
-  Per-row delete: `[title='Delete <Singular>']` (add `>> nth=N`). The confirm
+  Per-row delete: `[title='Delete <Singular>']` (`'Delete <singular>'`, lower
+  case, on a screen with `labels`; add `>> nth=N`). The highlighted row of a
+  list with `selectedKey`: `.ms-DetailsRow.is-selected`. The confirm
   dialog's button: `.ms-Dialog-main button:has-text('Delete')`.
-- Header nav icons (back/edit/add) are icon-only `IconButton`s with no
-  title. Navigate by URL instead: `/<route>/new`, `/<route>/<id>/show`,
-  `/<route>/<id>/edit`.
+- Header nav icons are icon-only `IconButton`s with accessible names:
+  `[aria-label='Back']`, `[aria-label^='Edit']`, `[aria-label^='Add']`. Or
+  navigate by URL: `/<route>/new`, `/<route>/<id>/show`, `/<route>/<id>/edit`.
+- Pager: `[aria-label='Next page']`, `[aria-label='Previous page']`.
+- Touch sizes: a context with `hasTouch: true` matches `(pointer: coarse)`,
+  so icon buttons measure 44px there and 32px without it.
 - Card view: the clickable part is the thumbnail, not the title text.
 - Fluent dropdowns: click `.ms-Dropdown` (add `>> nth=N`), then the option
   `.ms-Dropdown-item:has-text('...')`.

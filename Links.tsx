@@ -1,7 +1,8 @@
 import React from 'react';
 import { Name, Icon, IconButton } from './lib';
 import { Stack, Separator, useLocation, useParams, useNavigate } from './lib';
-import { IDispatcher } from '../typical-admin';
+import { IDispatcher, ITALabels, label, resolveLabels } from '../typical-admin';
+import { touchIconButtonStyles } from './lib/touch';
 
 interface Props {
   name: Name;
@@ -13,17 +14,30 @@ interface Props {
    *  other grid controls, and card view (which has no toolbar) still
    *  relies on the button here. */
   hideAdd?: boolean;
+  /** Suppresses the back button, for a container that already provides one
+   *  (denim-fabric's master-detail on a phone, whose back bar leads to the
+   *  same place). Edit and Add stay. */
+  hideBack?: boolean;
+  /** Display text (accessible names of the buttons); see typical-admin's labels.ts. */
+  labels?: ITALabels;
 }
 
-const Links: React.FC<Props> = ({ name: _name, dispatcher, hideAdd }) => {
+const Links: React.FC<Props> = ({ name, dispatcher, hideAdd, hideBack, labels }) => {
   const { pathname } =  useLocation();
   const { id } = useParams();
   const navigate = useNavigate();
+  const l = resolveLabels(name, labels);
   const urls = {
     edit: new RegExp(`/edit$`),
     new: new RegExp(`/new$`),
     show: new RegExp(`/show$`),
   };
+  const back = (onClick: () => void) =>
+    hideBack ? null : (
+      <IconButton onClick={onClick} ariaLabel={label(l, 'back')} styles={touchIconButtonStyles}>
+        <Icon iconName={'back'} />
+      </IconButton>
+    );
 
   if (urls.show.test(pathname)) {
     return (
@@ -32,13 +46,15 @@ const Links: React.FC<Props> = ({ name: _name, dispatcher, hideAdd }) => {
         tokens={{ childrenGap: '0.77em' }}
         verticalAlign={'center'}
       >
-        <IconButton onClick={() => navigate(pathname.replace(`/${id}/show`, '/'))}>
-          <Icon iconName={'back'} />
-        </IconButton>
+        {back(() => navigate(pathname.replace(`/${id}/show`, '/')))}
         {dispatcher.edit && (
           <>
-            <Separator vertical />
-            <IconButton onClick={() => navigate(pathname.replace('show', 'edit'))}>
+            {!hideBack && <Separator vertical />}
+            <IconButton
+              onClick={() => navigate(pathname.replace('show', 'edit'))}
+              ariaLabel={label(l, 'edit')}
+              styles={touchIconButtonStyles}
+            >
               <Icon iconName={'edit'} />
             </IconButton>
           </>
@@ -46,17 +62,9 @@ const Links: React.FC<Props> = ({ name: _name, dispatcher, hideAdd }) => {
       </Stack>
     );
   } else if (urls.edit.test(pathname)) {
-    return (
-      <IconButton onClick={() => navigate(pathname.replace('edit', 'show'))}>
-        <Icon iconName={'back'} />
-      </IconButton>
-    );
+    return back(() => navigate(pathname.replace('edit', 'show')));
   } else if (urls.new.test(pathname)) {
-    return (
-      <IconButton onClick={() => navigate(pathname.replace('/new', ''))}>
-        <Icon iconName={'back'} />
-      </IconButton>
-    );
+    return back(() => navigate(pathname.replace('/new', '')));
   } else {
     return (
       <Stack
@@ -71,13 +79,15 @@ const Links: React.FC<Props> = ({ name: _name, dispatcher, hideAdd }) => {
             -> "/projects/", same page) instead of actually going back.
             navigate(-1) is real browser history-back, which always does what
             a "back" button should regardless of how deep the route tree is. */}
-        <IconButton onClick={() => navigate(-1)}>
-          <Icon iconName={'back'} />
-        </IconButton>
+        {back(() => navigate(-1))}
         {dispatcher.new && !hideAdd && (
           <>
-            <Separator vertical />
-            <IconButton onClick={() => navigate(`${pathname}/new`)}>
+            {!hideBack && <Separator vertical />}
+            <IconButton
+              onClick={() => navigate(`${pathname}/new`)}
+              ariaLabel={label(l, 'add')}
+              styles={touchIconButtonStyles}
+            >
               <Icon iconName={'add'} />
             </IconButton>
           </>

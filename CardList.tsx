@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Stack, IconButton, Icon, getTheme, ThumbnailCard, useQuery, useMutation, useNavigate, useLocation } from './lib';
 import Links from './Links';
-import { IDispatcher, DisplaySchema, IComponents, Name } from '../typical-admin';
+import { IDispatcher, DisplaySchema, IComponents, Name, ITALabels, ResolvedLabels, label, resolveLabels } from '../typical-admin';
 import Subscriber from '../typical-admin/Subscriber';
 import { confirmAsync } from './ConfirmDialog';
 
@@ -53,6 +53,8 @@ interface Props {
   // stopping propagation if their control shouldn't also trigger the card's
   // navigation.
   cardActions?: (item: any) => React.ReactNode;
+  // Display text (heading, delete button); see typical-admin's labels.ts.
+  labels?: ITALabels;
 }
 
 // Only mounted when dispatcher.delete exists — useMutation must never be
@@ -60,17 +62,17 @@ interface Props {
 // that's conditionally *rendered*, not conditionally *invoked*, mirroring how
 // Show.tsx only ever mounts the standalone Delete.tsx when dispatcher.delete
 // is set rather than guarding a hook call inline.
-const CardDeleteButton: React.FC<{ dispatcher: IDispatcher; name: Name; item: any }> = ({ dispatcher, name, item }) => {
+const CardDeleteButton: React.FC<{ dispatcher: IDispatcher; labels: ResolvedLabels; item: any }> = ({ dispatcher, labels, item }) => {
   const [removeItem] = useMutation(dispatcher.delete, {
     refetchQueries: [{ query: dispatcher.list }],
   });
   return (
     <IconButton
       iconProps={{ iconName: 'Delete' }}
-      title={`Delete ${name.singular}`}
+      title={label(labels, 'deleteTitle')}
       onClick={async (e) => {
         e.stopPropagation();
-        if (!(await confirmAsync(`Delete this ${name.singular}? This cannot be undone.`, { danger: true }))) return;
+        if (!(await confirmAsync(label(labels, 'deleteConfirm'), { danger: true }))) return;
         removeItem({ variables: { id: item.id } });
       }}
     />
@@ -98,8 +100,10 @@ const CardList: React.FC<Props> = ({
   idField,
   basePath,
   cardActions,
+  labels,
 }) => {
   const theme = getTheme();
+  const l = resolveLabels(name, labels);
   const { pathname } = useLocation();
   const navigate = useNavigate();
   const routeBase = basePath ?? pathname;
@@ -142,11 +146,11 @@ const CardList: React.FC<Props> = ({
       )}
       {!hideHeader && (
         <Stack horizontal horizontalAlign="space-between" verticalAlign="center">
-          <h3>Listing {name.plural}</h3>
+          <h3>{label(l, 'listHeading')}</h3>
           {components?.links ? (
-            React.createElement(components.links, { name, dispatcher })
+            React.createElement(components.links, { name, dispatcher, labels })
           ) : (
-            <Links name={name} dispatcher={dispatcher} />
+            <Links name={name} dispatcher={dispatcher} labels={labels} />
           )}
         </Stack>
       )}
@@ -178,11 +182,11 @@ const CardList: React.FC<Props> = ({
                     {dispatcher.edit && (
                       <IconButton
                         iconProps={{ iconName: 'Settings' }}
-                        title={`Edit ${name.singular}`}
+                        title={`Edit ${l.singular}`}
                         onClick={(e) => { e.stopPropagation(); navigate(`${routeBase}/${routeId}/edit`); }}
                       />
                     )}
-                    {dispatcher.delete && <CardDeleteButton dispatcher={dispatcher} name={name} item={item} />}
+                    {dispatcher.delete && <CardDeleteButton dispatcher={dispatcher} labels={l} item={item} />}
                   </>
                 ) : undefined
               }
@@ -192,7 +196,7 @@ const CardList: React.FC<Props> = ({
       </Stack>
 
       {pageItems.length === 0 && (
-        <span style={{ opacity: 0.6, padding: '1em 0' }}>No {name.plural.toLowerCase()} yet.</span>
+        <span style={{ opacity: 0.6, padding: '1em 0' }}>No {l.plural.toLowerCase()} yet.</span>
       )}
 
       {pageSize && items.length > pageSize && (
