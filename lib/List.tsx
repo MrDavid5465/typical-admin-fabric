@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import Field from './templates/Fabric';
 import {
   getStyle,
@@ -11,7 +11,8 @@ import {
 } from '.';
 import ListControls, { ListButtonConfig, RowButtonConfig } from './ListControls';
 import { ColumnVisibilityStore, localStorageColumnVisibilityStore } from './columnVisibilityStore';
-import { IColumn, CheckboxVisibility } from '@fluentui/react';
+import { IColumn, CheckboxVisibility, Selection, mergeStyles } from '@fluentui/react';
+import { COARSE_POINTER, TOUCH_TARGET, touchIconButtonStyles } from './touch';
 import { matchSorter } from 'match-sorter';
 // import { CSVLink } from 'react-csv';
 import { DisplaySchema } from '../../typical-admin';
@@ -53,7 +54,29 @@ interface Props {
   // already wired below), and act on that selected row — not inline in
   // each row.
   rowButtons?: RowButtonConfig[];
+  // Calls onSelect on a row click or tap, or Enter on a focused row (a
+  // double-click calls it again for the same row), instead of whenever the
+  // active row changes. The default fires only when a *different* row
+  // becomes active, so a list that stays on screen next to its detail
+  // (denim-fabric's AdminMasterDetail) couldn't reopen the row it had just
+  // closed. Off by default: arrow keys keep opening rows as before.
+  selectOnClick?: boolean;
+  // Highlights the row whose key is this value; null highlights none. When
+  // it changes (a deep link, Back, a new record) the list turns to the page
+  // holding that row and scrolls it into view. Leave undefined for the
+  // default, uncontrolled selection. For a selection that lives elsewhere,
+  // e.g. in the URL of a detail pane.
+  selectedKey?: string | null;
+  // Which item field is the row key for selectedKey. Default 'id'.
+  keyField?: string;
 }
+
+// Room above the grid for the ListControls toolbar: its buttons grow to 44px
+// on touch screens (see ./touch).
+const toolbarSpace = mergeStyles({
+  paddingTop: 36,
+  selectors: { [COARSE_POINTER]: { paddingTop: TOUCH_TARGET + 4 } },
+});
 
 const List: React.FC<Props> = ({
   items,
@@ -69,6 +92,9 @@ const List: React.FC<Props> = ({
   onAdd,
   customButtons,
   rowButtons,
+  selectOnClick,
+  selectedKey,
+  keyField = 'id',
 }) => {
   const [filters, setFilters] = useState<IndexableObject>({});
   const [sort, setSort] = useState<IndexableObject>({});
@@ -90,8 +116,17 @@ const List: React.FC<Props> = ({
   }, {} as Record<string, any>);
   function handleSelect(item?: any) {
     if (rowButtons?.length) setSelectedItem(item ?? null);
-    onSelect && onSelect(item);
+    !selectOnClick && onSelect && onSelect(item);
   }
+  // A Selection of our own only when the highlight is controlled
+  // (selectedKey), so every other list keeps Fluent's default behaviour.
+  const controlled = selectedKey !== undefined;
+  const selection = useMemo(
+    () => new Selection({ getKey: (item: any) => String(item?.[keyField] ?? ''), selectionMode: SelectionMode.single }),
+    [keyField],
+  );
+  const gridRef = useRef<HTMLDivElement>(null);
+  const [, setSelectionVersion] = useState(0);
   // Row buttons act on whichever row is currently selected — clearing the
   // selection after acting avoids a stale reference to a since-mutated (or
   // deleted) row still being the target of the next click.
@@ -156,7 +191,8 @@ const List: React.FC<Props> = ({
   });
   Object.entries(sort).forEach(([name, value]: any) => {
     if (value !== '' && value !== undefined) {
-      filteredItems = filteredItems.sort((a: any, b: any) =>
+      // A copy: the items may be Apollo's frozen result array.
+      filteredItems = [...filteredItems].sort((a: any, b: any) =>
         value === 'asc'
           ? a[name] > b[name]
             ? 1
@@ -166,6 +202,58 @@ const List: React.FC<Props> = ({
           : -1
       );
     }
+  });
+  const pageItems = pageSize
+    ? filteredItems.slice(page * pageSize, (page + 1) * pageSize)
+    : filteredItems;
+  const selectedIndex = controlled && selectedKey !== null
+    ? pageItems.findIndex((i: any) => String(i?.[keyField]) === String(selectedKey))
+    : -1;
+  // Re-applied after every render: DetailsList re-seeds the selection's items
+  // whenever it gets a new page of them.
+  useEffect(() => {
+    if (!controlled) return;
+    const key = selectedIndex >= 0 ? String(selectedKey) : null;
+    const current = selection.getSelection()[0];
+    const currentKey = current ? String((current as any)[keyField]) : null;
+    if (currentKey === key) return;
+    selection.setAllSelected(false);
+    if (key !== null) selection.setKeySelected(key, true, false);
+    // Re-render so the rows pick it up: under React's StrictMode they can
+    // miss the selection's change event. Only on a real change, so a key the
+    // selection doesn't know can't loop.
+    const after = selection.getSelection()[0];
+    if ((after ? String((after as any)[keyField]) : null) !== currentKey) setSelectionVersion(v => v + 1);
+  });
+  // When the selection changes, show it: turn to its page, then scroll its
+  // row into view. Kept pending until the row exists (a just-created record
+  // arrives with the list's refetch). Paging by hand doesn't move it.
+  const revealKey = useRef<string | null>(null);
+  useEffect(() => {
+    revealKey.current = selectedKey ?? null;
+  }, [selectedKey]);
+  useEffect(() => {
+    const key = revealKey.current;
+    if (!controlled || key === null) return;
+    const index = filteredItems.findIndex((i: any) => String(i?.[keyField]) === key);
+    if (index < 0) return;
+    const target = pageSize ? Math.floor(index / pageSize) : 0;
+    if (target !== page) {
+      setPage(target);
+      return;
+    }
+    revealKey.current = null;
+    // Fluent renders rows past the first few a frame or two later.
+    const selector = `.ms-DetailsRow[data-item-index="${index - target * (pageSize ?? 0)}"]`;
+    let frame = 0;
+    let tries = 10;
+    const reveal = () => {
+      const row = gridRef.current?.querySelector(selector);
+      if (row) row.scrollIntoView({ block: 'nearest' });
+      else if (--tries > 0) frame = requestAnimationFrame(reveal);
+    };
+    reveal();
+    return () => cancelAnimationFrame(frame);
   });
   return (
     <>
@@ -245,7 +333,11 @@ const List: React.FC<Props> = ({
           </Stack>
         )} */}
 
-        <div style={{ position: 'relative', paddingTop: (columnSelectable || onAdd || customButtons?.length || rowButtons?.length) ? 36 : 0 }}>
+        <div
+          ref={gridRef}
+          style={{ position: 'relative' }}
+          className={(columnSelectable || onAdd || customButtons?.length || rowButtons?.length) ? toolbarSpace : undefined}
+        >
           <ListControls
             columnSelectable={columnSelectable}
             visibleCount={visibleCount}
@@ -262,18 +354,22 @@ const List: React.FC<Props> = ({
           />
           <DetailsList
             onActiveItemChanged={handleSelect}
+            {...(controlled ? { selection, setKey: 'list' } : {})}
+            // Enter on a focused row (and double-click) with selectOnClick.
+            onItemInvoked={selectOnClick ? (item?: any) => onSelect?.(item) : undefined}
             onRenderRow={(props: any, defaultRender: any) => {
               return handleSelect !== null && handleSelect !== undefined ? (
-                <div style={{ cursor: 'pointer' }}>{defaultRender(props)}</div>
+                <div
+                  style={{ cursor: 'pointer' }}
+                  onClick={selectOnClick ? () => onSelect?.(props.item) : undefined}
+                >
+                  {defaultRender(props)}
+                </div>
               ) : (
                 defaultRender(props)
               );
             }}
-            items={
-              pageSize
-                ? filteredItems.slice(page * pageSize, (page + 1) * pageSize)
-                : filteredItems
-            }
+            items={pageItems}
             checkboxVisibility={CheckboxVisibility.hidden}
             selectionMode={
               !handleSelect ? SelectionMode.none : SelectionMode.single
@@ -302,12 +398,19 @@ const List: React.FC<Props> = ({
         </div>
         {pageSize && (
           <Stack horizontal horizontalAlign={'end'} verticalAlign={'center'}>
-            <IconButton disabled={page === 0} onClick={() => setPage(page - 1)}>
+            <IconButton
+              disabled={page === 0}
+              onClick={() => setPage(page - 1)}
+              ariaLabel="Previous page"
+              styles={touchIconButtonStyles}
+            >
               <Icon iconName={'Remove'} />
             </IconButton>
             <IconButton
               disabled={filteredItems.length - page * pageSize <= pageSize}
               onClick={() => setPage(page + 1)}
+              ariaLabel="Next page"
+              styles={touchIconButtonStyles}
             >
               <Icon iconName={'Add'} />
             </IconButton>

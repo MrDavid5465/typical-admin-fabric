@@ -4,6 +4,7 @@ import ReactiveAdmin, {
   ITACallBacks,
   ITASchema,
   IComponents,
+  ITALabels,
 } from '../typical-admin';
 
 import Update from './Update';
@@ -18,6 +19,9 @@ interface Props {
   schemaDefinition: ITASchema;
   callBacks?: ITACallBacks;
   pageSize?: number;
+  /** Display text, separate from `name`'s GraphQL stems; see typical-admin's
+   *  labels.ts. Without it the headings stay "Listing Projects" etc. */
+  labels?: ITALabels;
 }
 
 const Index: React.FC<Props> = ({
@@ -27,12 +31,14 @@ const Index: React.FC<Props> = ({
   components,
   callBacks,
   pageSize = 20,
+  labels,
 }) => {
   return (
     <ReactiveAdmin
       dispatcher={dispatcher}
       name={name}
       callBacks={callBacks}
+      labels={labels}
       components={{
         list: (props: any) => <List {...props} pageSize={pageSize} />,
         new: (props: any) => <Create {...props} />,

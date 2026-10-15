@@ -3,10 +3,11 @@ import { Stack, IconButton, Name, useQuery, useMutation, useLocation, useNavigat
 import DetailsList from './lib/List';
 
 import Links from './Links';
-import { IDispatcher, ListSchema, IComponents } from '../typical-admin';
+import { IDispatcher, ListSchema, IComponents, ITALabels, ResolvedLabels, label, resolveLabels } from '../typical-admin';
 import Subscriber from '../typical-admin/Subscriber';
 import { ColumnVisibilityStore } from './lib/columnVisibilityStore';
-import { confirmAsync } from '../denim/components/ConfirmDialog';
+import { confirmAsync } from './ConfirmDialog';
+import { touchIconButtonStyles } from './lib/touch';
 
 interface Props {
   dispatcher: IDispatcher;
@@ -21,6 +22,12 @@ interface Props {
   // Suppresses the built-in "Listing X" heading + Links row, for callers
   // (e.g. SwitchableList) embedding this with their own shared header.
   hideHeader?: boolean;
+  // Where this list's show/new routes live — defaults to the current URL,
+  // which is right when the list is the whole page. A list that stays on
+  // screen next to a detail pane (denim-fabric's AdminMasterDetail) passes
+  // its mount point, or a click while a detail is open would append to the
+  // detail's URL.
+  basePath?: string;
   // Which item field goes into the show-route URL — defaults to 'id'.
   // Mirrors CardList's same-named prop, e.g. for records keyed by a
   // human-readable name elsewhere in the app.
@@ -30,6 +37,16 @@ interface Props {
   storageKey?: string;
   columnVisibilityStore?: ColumnVisibilityStore;
   alwaysVisibleColumns?: string[];
+  // Display text (heading, delete button); see typical-admin's labels.ts.
+  labels?: ITALabels;
+  // Opens a row on click / Enter rather than when the active row changes,
+  // so the same row can be opened again after its detail closed. For a list
+  // that stays on screen beside its detail; see ./lib/List.
+  selectOnClick?: boolean;
+  // Highlights the row whose `idField` is this value; null for none. For a
+  // list beside its detail, driven by the detail's URL. Undefined: Fluent's
+  // own selection, as before.
+  selectedKey?: string | null;
 }
 
 // Per-row delete, the table-view counterpart to CardList's CardDeleteButton.
@@ -45,7 +62,7 @@ interface Props {
 // Mounted only when dispatcher.delete exists, so useMutation is never called
 // with an undefined document — the guard is on what is *rendered*, not on
 // whether a hook runs.
-const DeleteCell: React.FC<{ dispatcher: IDispatcher; name: Name; item: any }> = ({ dispatcher, name, item }) => {
+const DeleteCell: React.FC<{ dispatcher: IDispatcher; labels: ResolvedLabels; item: any }> = ({ dispatcher, labels, item }) => {
   const [removeItem] = useMutation(dispatcher.delete, {
     refetchQueries: [{ query: dispatcher.list }],
   });
@@ -55,7 +72,8 @@ const DeleteCell: React.FC<{ dispatcher: IDispatcher; name: Name; item: any }> =
   return (
     <IconButton
       iconProps={{ iconName: 'Delete' }}
-      title={`Delete ${name.singular}`}
+      title={label(labels, 'deleteTitle')}
+      styles={touchIconButtonStyles}
       // Both handlers: stopping the click alone still lets the row take focus
       // first, and focus is what drives onActiveItemChanged — i.e. the row
       // would navigate out from under the confirm dialog.
@@ -63,7 +81,7 @@ const DeleteCell: React.FC<{ dispatcher: IDispatcher; name: Name; item: any }> =
       onFocus={stop}
       onClick={async (e) => {
         e.stopPropagation();
-        if (!(await confirmAsync(`Delete this ${name.singular}? This cannot be undone.`, { danger: true }))) return;
+        if (!(await confirmAsync(label(labels, 'deleteConfirm'), { danger: true }))) return;
         removeItem({ variables: { id: item.id } });
       }}
     />
@@ -78,13 +96,19 @@ const List: React.FC<Props> = ({
   components,
   queryResultKey,
   hideHeader,
+  basePath,
   idField,
   columnSelectable,
   storageKey,
   columnVisibilityStore,
   alwaysVisibleColumns,
+  labels,
+  selectOnClick,
+  selectedKey,
 }) => {
   const {pathname} =  useLocation();
+  const l = resolveLabels(name, labels);
+  const base = basePath !== undefined ? basePath.replace(/\/+$/, '') : pathname;
   const navigate = useNavigate();
   const queryName = queryResultKey ?? `get${name.plural}`;
   const { data: items, error, loading, refetch } : { data?: any; error?: any; loading?: boolean; refetch?: () => void } = useQuery(dispatcher.list);
@@ -92,7 +116,10 @@ const List: React.FC<Props> = ({
     return <span>{`error: ${error}`}</span>;
   }
 
-  if (loading) {
+  // Only before the first result: a refetch (a live event, a save in a
+  // detail pane) keeps showing the rows it has, so the grid isn't remounted
+  // and its page, sort and filters survive.
+  if (loading && !items) {
     return <span>{`loading...`}</span>;
   }
 
@@ -123,7 +150,7 @@ const List: React.FC<Props> = ({
       ...schemaDefinition.columns,
       __delete: {
         label: '',
-        onRender: ({ values }: any) => <DeleteCell dispatcher={dispatcher} name={name} item={values} />,
+        onRender: ({ values }: any) => <DeleteCell dispatcher={dispatcher} labels={l} item={values} />,
       },
     }
     : schemaDefinition.columns;
@@ -142,18 +169,20 @@ const List: React.FC<Props> = ({
           horizontalAlign={'space-between'}
           verticalAlign={'center'}
         >
-          <h3>Listing {name.plural}</h3>
+          <h3>{label(l, 'listHeading')}</h3>
           {components?.links ? (
             React.createElement(components.links, {
               name,
               dispatcher,
               hideAdd: !!schemaDefinition.buttons?.add,
+              labels,
             })
           ) : (
             <Links
               name={name}
               dispatcher={dispatcher}
               hideAdd={!!schemaDefinition.buttons?.add}
+              labels={labels}
             />
           )}
         </Stack>
@@ -163,13 +192,19 @@ const List: React.FC<Props> = ({
         name={name.plural}
         schema={columns}
         onSelect={(item) => {
-          navigate(`${pathname}/${item[idField ?? 'id']}/show`, item);
+          const to = `${base}/${item[idField ?? 'id']}/show`;
+          // Already there (the open row clicked again): no duplicate history entry.
+          if (to === pathname) return;
+          navigate(to, item);
         }}
+        selectOnClick={selectOnClick}
+        selectedKey={selectedKey}
+        keyField={idField ?? 'id'}
         items={items[queryName] || []}
         columnSelectable={columnSelectable}
         storageKey={storageKey}
         columnVisibilityStore={columnVisibilityStore}
-        onAdd={schemaDefinition.buttons?.add && dispatcher.new ? () => navigate(`${pathname}/new`) : undefined}
+        onAdd={schemaDefinition.buttons?.add && dispatcher.new ? () => navigate(`${base}/new`) : undefined}
         // The delete column is an action, not data — it must never be one of
         // the columns the column-picker can hide.
         alwaysVisibleColumns={

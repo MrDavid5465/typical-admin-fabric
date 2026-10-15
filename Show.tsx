@@ -7,6 +7,9 @@ import {
   ITACallBacks,
   DisplaySchema,
   IComponents,
+  ITALabels,
+  label,
+  resolveLabels,
 } from '../typical-admin';
 import Subscriber from '../typical-admin/Subscriber';
 
@@ -16,6 +19,7 @@ interface Props {
   schemaDefinition: DisplaySchema<any>;
   callBacks?: ITACallBacks;
   components?: IComponents;
+  labels?: ITALabels;
 }
 
 const Show: React.FC<Props> = ({
@@ -24,8 +28,10 @@ const Show: React.FC<Props> = ({
   schemaDefinition,
   callBacks,
   components,
+  labels,
 }) => {
   const {id} = useParams();
+  const l = resolveLabels(name, labels);
   const queryName = `get${name.singular}`;
   const { data, error, loading, refetch } : { data?: any; error?: any; loading: boolean; refetch: () => void } = useQuery(dispatcher.show, {
     variables: { id },
@@ -56,15 +62,16 @@ const Show: React.FC<Props> = ({
         horizontalAlign={'space-between'}
         verticalAlign={'center'}
       >
-        <h4>Showing {name.singular}</h4>
+        <h4>{label(l, 'showHeading')}</h4>
         {components?.links ? (
           React.createElement(components.links, {
             name,
             dispatcher,
             item: data[queryName],
+            labels,
           })
         ) : (
-          <Links name={name} dispatcher={dispatcher} />
+          <Links name={name} dispatcher={dispatcher} labels={labels} />
         )}
       </Stack>
       {Object.entries(schemaDefinition).map(([k, v]: any) => {
@@ -88,6 +95,7 @@ const Show: React.FC<Props> = ({
               name,
               dispatcher,
               callBacks,
+              labels,
             })
           ) : (
             <Delete
@@ -95,6 +103,7 @@ const Show: React.FC<Props> = ({
               name={name}
               dispatcher={dispatcher}
               callBacks={callBacks}
+              labels={labels}
             />
           ))}
       </Stack>
