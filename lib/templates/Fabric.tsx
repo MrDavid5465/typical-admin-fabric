@@ -11,13 +11,13 @@ import {
   ChoiceGroup,
   Dropdown,
   getTheme,
-  mergeStyleSets,
   DatePicker,
   PrimaryButton,
   DefaultButton,
 } from '@fluentui/react';
 import { format, parseISO } from 'date-fns';
 import ListField from './ListField';
+import { getFormStyle } from '../formStyles';
 import CheckField from './CheckField';
 import SearchableMultiSelect from './SearchableMultiSelect';
 import SearchableSelect from './SearchableSelect';
@@ -26,18 +26,8 @@ import { dropdownMenuProps, comboBoxMenuProps } from './menuCallout';
 interface IndexableObject {
   [key: string]: any;
 }
-const getStyle = () => {
-  const theme = getTheme();
-  return mergeStyleSets({
-    errors: {
-      minHeight: '1.32em',
-      fontSize: '0.8em',
-      marginBottom: '0.5em',
-    },
-    error: { color: theme.semanticColors.errorText },
-    hint: { color: theme.palette.themePrimary },
-  });
-};
+// Field feedback styles (shared with denim-fabric's getStyle()).
+const getStyle = getFormStyle;
 const Feedback = withConditionalRender(
   ({ errors, dirty }: { errors: string[]; dirty?: boolean }) => {
     const style = getStyle();

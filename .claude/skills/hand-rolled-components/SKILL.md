@@ -31,6 +31,8 @@ Look in `typical-admin-fabric/lib/templates/` before writing a style value:
 | `ComboBoxField` | Input behind the `combobox` field type: type-ahead that filters the menu, stores option keys while showing their text, optional pick-or-create (`create`). |
 | `optionSearch.ts` | `normalizeText` / `optionMatches` / `findOptionByText`: the one definition of "matches what was typed" (trimmed, case-insensitive). |
 | `menuCallout.ts` | `dropdownMenuProps` / `comboBoxMenuProps`: open menus directly under their box. Spread them first on any new `Dropdown`/`ComboBox`. |
+| `Photo/` | `Photo`: one image with pick/drop, EXIF rotation, crop, download, remove; `submit(base64)`. For a standalone image control (inside a per-form schema use `image-upload`). |
+| `../formStyles.ts` | `getFormStyle()` / `formStyles(theme)`: `error`, `errors`, `hint`, `labelHorizontal`, `fieldHorizontal`, `dangerButton`. Reuse these for field feedback and a destructive button instead of new colours. |
 
 `FormCard`, `ThumbnailCard` and `WideCard` are exported from
 `typical-admin-fabric/lib` (`import { FormCard } from '../lib/typical-admin-fabric/lib'`).

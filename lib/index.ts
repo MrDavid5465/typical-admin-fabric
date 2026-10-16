@@ -22,6 +22,8 @@ export {
 export { useNavigate, useLocation, useParams } from 'react-router'
 export { Route } from 'react-router-dom';
 export { default as List } from './List';
+export { formStyles, getFormStyle } from './formStyles';
+export type { FormStyles } from './formStyles';
 export interface Name {
   singular: string;
   plural: string;
