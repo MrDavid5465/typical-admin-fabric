@@ -68,11 +68,15 @@ npm i react@^18.3.1 react-dom@^18.3.1 \
   @fluentui/react@^8.125.6 \
   @apollo/client@^4.2.3 graphql@^16.14.2 rxjs@^7.8.2 \
   react-router@^7.17.0 react-router-dom@^7.17.0 \
-  match-sorter@^8.3.0 date-fns@^4.4.0
+  match-sorter@^8.3.0 date-fns@^4.4.0 \
+  react-image-crop@^11.0.10 react-dropzone@^15.0.0 exif-js@^2.3.0
 npm i -D typescript@~5.6.2 vite@^6 @vitejs/plugin-react@^4.3.4 \
   @types/react@^18.3.1 @types/react-dom@^18.3.1
 ```
 
+- `react-image-crop`, `react-dropzone` and `exif-js` are for `Photo`
+  (`lib/templates/Photo/`); a `tsc` over the folder needs them even if you
+  never render it.
 - `rxjs` is a required peer of Apollo Client 4. `graphql-tag` and
   `@fluentui/react-hooks` come in as dependencies of `@apollo/client` and
   `@fluentui/react`; you don't install them (use `gql` from `@apollo/client`).
@@ -342,6 +346,55 @@ This exact example type-checks with the packages above and was driven in
 Chromium against a typiql-shaped endpoint (list, show, create, edit, delete,
 live refetch).
 
+## Photo: an image picker for a form
+
+`lib/templates/Photo/` is a form component for one image: drop or pick a
+JPEG or PNG (up to 500 kB), its EXIF orientation is corrected, crop it,
+and Save hands the result to `submit`. An existing image gets crop,
+download and delete buttons. It never talks to the server.
+
+```tsx
+import Photo from '../lib/typical-admin-fabric/lib/templates/Photo';
+
+<Photo
+  id={device.id}                     // the download's file name
+  image={device.photo ?? ''}         // base64 PNG/JPEG, WITHOUT the data: prefix
+  icon="image"                       // or "user": the placeholder icon when empty
+  submit={(base64: string) =>        // the saved image (PNG base64), '' on remove
+    updateDevice({ variables: { id: device.id, update: { photo: base64 || null } } })}
+/>
+```
+
+It moved here from denim-fabric, which still re-exports it (`Photo` from
+`denim-fabric`, and `denim-fabric/Photo`), with the same props. For an
+image field inside a per-form schema, use the `image-upload` field type
+instead (see `form-schema`).
+
+## Form styles
+
+`lib/formStyles.ts` holds the form styles for the current theme, under the
+names denim's `getStyle()` has always used:
+
+| Member | What it is |
+|---|---|
+| `errors` | the feedback line under a field (keeps its height when empty) |
+| `error` | feedback text once the field is dirty and invalid (`errorText`) |
+| `hint` | feedback text before the field is touched (`themePrimary`) |
+| `labelHorizontal`, `fieldHorizontal` | a label to the left of its field |
+| `dangerButton` | a destructive button, red in light and dark themes |
+
+```tsx
+import { getFormStyle } from '../lib/typical-admin-fabric/lib';
+
+const style = getFormStyle();          // class names: style.error, style.dangerButton, ...
+<PrimaryButton className={style.dangerButton} text="Delete" />
+```
+
+`formStyles(theme)` returns the raw style objects (for `mergeStyleSets`
+with your own). `Fabric.tsx`'s field feedback uses them, and
+denim-fabric's `getStyle()` includes them, so `getStyle().error` keeps
+working there.
+
 ## What's in here
 
 | File | What it is |
@@ -355,6 +408,8 @@ live refetch).
 | `lib/touch.ts` | `touchIconButtonStyles`: icon buttons 44px on touch screens (`pointer: coarse`), 32px with a mouse |
 | `lib/templates/Fabric.tsx` | per-form field template: maps each field `type` to a Fluent control |
 | `lib/templates/Form.tsx` | `Form`: per-form + Fabric.tsx, with an imperative ref (`isValid`, `submit()`, `reset()`) |
+| `lib/templates/Photo/` | `Photo`: image picker with EXIF rotation, cropper, download and remove |
+| `lib/formStyles.ts` | `formStyles(theme)`, `getFormStyle()`: `error`, `errors`, `hint`, `labelHorizontal`, `fieldHorizontal`, `dangerButton` |
 | `lib/templates/*Card.tsx`, `CheckField.tsx`, `ListField.tsx`, `SearchableDropdown.tsx` (+ `SearchableSelect`/`SearchableMultiSelect`), `ComboBoxField.tsx` | reusable atoms |
 
 ## License

@@ -243,6 +243,13 @@ const ref = useRef<IFormRef>(null);
 
 `onChange(name, { raw, clean, isValid, errors })` fires on every change.
 
+Next to a form, two pieces in this library are often useful:
+`lib/templates/Photo/` (`Photo`, a standalone image picker and cropper that
+hands a base64 PNG to `submit`; prefer the `image-upload` field type inside
+a schema) and `lib/formStyles.ts` (`getFormStyle()`: the `error`, `hint`,
+`errors`, `labelHorizontal`, `fieldHorizontal` and `dangerButton` classes
+the field template itself uses).
+
 ## Run the validator before calling a schema done
 
 From the app root (so `typescript` resolves from its `node_modules`):
