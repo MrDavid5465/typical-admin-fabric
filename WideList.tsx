@@ -58,7 +58,11 @@ const WideList: React.FC<Props> = ({
   if (error) {
     return <span>{`error: ${error}`}</span>;
   }
-  if (loading) {
+  // Only before the first result, as in List: Apollo Client 4 sets
+  // `loading` during a refetch too (a live event, a save elsewhere), and
+  // returning here then unmounted every card and rebuilt the grid, its
+  // thumbnails reloading, on each one.
+  if (loading && !data) {
     return <span>{`loading...`}</span>;
   }
 
