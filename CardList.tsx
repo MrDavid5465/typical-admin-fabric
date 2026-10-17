@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
+import { mergeStyles } from '@fluentui/react';
 import { Stack, IconButton, Icon, getTheme, ThumbnailCard, useQuery, useMutation, useNavigate, useLocation } from './lib';
+import { THUMBNAIL_CARD_WIDTH } from './lib/templates/ThumbnailCard';
 import Links from './Links';
 import { IDispatcher, DisplaySchema, IComponents, Name, ITALabels, ResolvedLabels, label, resolveLabels } from '../typical-admin';
 import Subscriber from '../typical-admin/Subscriber';
@@ -56,6 +58,22 @@ interface Props {
   // Display text (heading, delete button); see typical-admin's labels.ts.
   labels?: ITALabels;
 }
+
+const CARD_GAP = 16;
+
+// The card grid: as many columns of at least `cardWidth` as fit the grid's
+// own width (minimum one), then stretched evenly so each row spans it —
+// the same column count a fixed-width wrap gives, without the leftover strip
+// on the right. auto-fill keeps empty tracks, so a short last row keeps the
+// full rows' card width. Sized by the container, not the window, so a list
+// in a narrow pane behaves like one on a narrow screen; on a phone it's one
+// full-width column. min(..., 100%) lets that one column shrink below
+// cardWidth instead of overflowing.
+const gridClass = (cardWidth: number) => mergeStyles({
+  display: 'grid',
+  gridTemplateColumns: `repeat(auto-fill, minmax(min(${cardWidth}px, 100%), 1fr))`,
+  gap: CARD_GAP,
+});
 
 // Only mounted when dispatcher.delete exists — useMutation must never be
 // called with an undefined document, so the mutation lives in a component
@@ -115,7 +133,11 @@ const CardList: React.FC<Props> = ({
   if (error) {
     return <span>{`error: ${error}`}</span>;
   }
-  if (loading) {
+  // Only before the first result, as in List: Apollo Client 4 sets
+  // `loading` during a refetch too (a live event, a save elsewhere), and
+  // returning here then unmounted every card and rebuilt the grid, its
+  // thumbnails reloading, on each one.
+  if (loading && !data) {
     return <span>{`loading...`}</span>;
   }
 
@@ -155,7 +177,7 @@ const CardList: React.FC<Props> = ({
         </Stack>
       )}
 
-      <Stack horizontal wrap tokens={{ childrenGap: 16 }}>
+      <div className={gridClass(cardWidth ?? THUMBNAIL_CARD_WIDTH)}>
         {pageItems.map((item) => {
           const title = titleSchema?.onRender
             ? titleSchema.onRender({ value: item[titleField], values: item })
@@ -172,6 +194,7 @@ const CardList: React.FC<Props> = ({
               width={cardWidth}
               thumbnailHeight={thumbnailHeight}
               fit={thumbnailFit}
+              fluid
               title={String(title ?? '')}
               thumbnailUrl={thumbnailUrl}
               onThumbnailClick={() => navigate(`${routeBase}/${routeId}/show`)}
@@ -193,7 +216,7 @@ const CardList: React.FC<Props> = ({
             />
           );
         })}
-      </Stack>
+      </div>
 
       {pageItems.length === 0 && (
         <span style={{ opacity: 0.6, padding: '1em 0' }}>No {l.plural.toLowerCase()} yet.</span>

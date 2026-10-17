@@ -781,6 +781,10 @@ export default function Raw(props: any): ReactElement {
                 onPointerUp={rest.onDeactivate}
                 style={{
                   flex: 1,
+                  // A range input's intrinsic width (~130px) is otherwise its
+                  // minimum: in a narrow column (a list row's share) it pushed
+                  // the number box out of the column or crushed it.
+                  minWidth: 0,
                   accentColor: theme.palette.themePrimary,
                   cursor: rest.disabled ? 'default' : 'pointer',
                   height: 20,
@@ -810,7 +814,8 @@ export default function Raw(props: any): ReactElement {
                   }
                 }}
                 styles={{
-                  root: { width: 60 },
+                  // Never shrinks: the slider gives way instead.
+                  root: { width: 60, flexShrink: 0 },
                   fieldGroup: { height: 24 },
                   field: { textAlign: 'right', padding: '0 6px', fontSize: '0.85em' },
                 }}

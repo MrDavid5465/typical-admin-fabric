@@ -125,7 +125,10 @@ Shared props:
 `CardList` / `SwitchableList` (card view):
 
 - `titleField` (required), `thumbnailField` (an image URL; omit for
-  text-only cards), `cardWidth` (280), `thumbnailHeight` (175),
+  text-only cards), `cardWidth` (280: the *minimum* column width; the grid
+  fits as many columns as `cardWidth` + 16px gaps allow in its own width,
+  then stretches them to fill it, so one full-width column on a phone),
+  `thumbnailHeight` (175: with `cardWidth`, the thumbnail's aspect ratio),
   `thumbnailFit: 'cover' | 'contain'`, `cardActions(item)` (extra buttons on
   each card; stop propagation yourself), `CardList` only: `basePath` (route
   prefix when the list is embedded on another page), `defaultView` on
