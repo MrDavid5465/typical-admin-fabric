@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Stack, IconButton, Icon, getTheme, Form } from '.';
+import { touchIconButtonStyles } from './touch';
 
 export interface ListButtonConfig {
   key: string;
@@ -66,12 +67,12 @@ const ListControls: React.FC<Props> = ({
         style={{ position: 'absolute', top: 4, right: 4, zIndex: 2, background: theme.palette.white, borderRadius: 4 }}
       >
         {customButtons?.map(btn => (
-          <IconButton key={btn.key} title={btn.label} disabled={btn.disabled} onClick={btn.onClick}>
+          <IconButton key={btn.key} title={btn.label} disabled={btn.disabled} onClick={btn.onClick} styles={touchIconButtonStyles}>
             <Icon iconName={btn.icon} style={btn.danger && !btn.disabled ? { color: theme.palette.redDark } : undefined} />
           </IconButton>
         ))}
         {onAdd && (
-          <IconButton title="Add" onClick={onAdd}>
+          <IconButton title="Add" onClick={onAdd} styles={touchIconButtonStyles}>
             <Icon iconName={'Add'} />
           </IconButton>
         )}
@@ -79,6 +80,7 @@ const ListControls: React.FC<Props> = ({
           <IconButton
             title={`Columns (${visibleCount}/${totalCount})`}
             onClick={() => setOpen(true)}
+            styles={touchIconButtonStyles}
           >
             <Icon iconName={'TripleColumnEdit'} />
           </IconButton>

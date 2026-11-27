@@ -11,31 +11,23 @@ import {
   ChoiceGroup,
   Dropdown,
   getTheme,
-  mergeStyleSets,
   DatePicker,
   PrimaryButton,
   DefaultButton,
 } from '@fluentui/react';
 import { format, parseISO } from 'date-fns';
 import ListField from './ListField';
+import { getFormStyle } from '../formStyles';
 import CheckField from './CheckField';
 import SearchableMultiSelect from './SearchableMultiSelect';
+import SearchableSelect from './SearchableSelect';
+import ComboBoxField from './ComboBoxField';
 import { dropdownMenuProps, comboBoxMenuProps } from './menuCallout';
 interface IndexableObject {
   [key: string]: any;
 }
-const getStyle = () => {
-  const theme = getTheme();
-  return mergeStyleSets({
-    errors: {
-      minHeight: '1.32em',
-      fontSize: '0.8em',
-      marginBottom: '0.5em',
-    },
-    error: { color: theme.semanticColors.errorText },
-    hint: { color: theme.palette.themePrimary },
-  });
-};
+// Field feedback styles (shared with denim-fabric's getStyle()).
+const getStyle = getFormStyle;
 const Feedback = withConditionalRender(
   ({ errors, dirty }: { errors: string[]; dirty?: boolean }) => {
     const style = getStyle();
@@ -83,19 +75,15 @@ export default function Raw(props: any): ReactElement {
     const { value } = e.target;
     onChange(name, value);
   }
+  // Always a new array: the current one may be frozen (an edit page's
+  // initial value straight from Apollo's cache is), and pushing into it
+  // threw "object is not extensible".
   function handleMultiSelect(_: any, option: any) {
-    let newValue = value;
-    if (newValue === undefined || newValue === null || newValue === '') {
-      newValue = [];
-    }
+    const current: any[] = Array.isArray(value) ? value : [];
     if (option.selected) {
-      newValue.push(option.key);
-      onChange(name, newValue);
+      onChange(name, current.includes(option.key) ? [...current] : [...current, option.key]);
     } else {
-      onChange(
-        name,
-        newValue.filter((v: any) => v !== option.key)
-      );
+      onChange(name, current.filter((v: any) => v !== option.key));
     }
   }
   function sign() {
@@ -254,7 +242,35 @@ export default function Raw(props: any): ReactElement {
             </Stack>
           </Stack>
         );
-      case 'select':
+      case 'select': {
+        // rest.searchable: true adds a filter box at the top of the menu, as
+        // on multi-select. Destructured out so it never reaches the Dropdown
+        // as an unknown prop.
+        const { searchable, ...selectRest } = rest;
+        if (searchable) {
+          return (
+            <Stack className={rest.className}>
+              <SearchableSelect
+                label={label}
+                onSelect={(option: any) => handleSelect(undefined, option)}
+                onFocus={handleFocus}
+                selectedKey={value}
+                options={options.map(
+                  ({ text, value: optValue, disabled }: { text: string; value: any; disabled?: boolean }) =>
+                    ({ key: optValue, text, disabled })
+                )}
+                {...selectRest}
+              />
+              <Stack className={style.errors}>
+                <Feedback
+                  and={[!isValid, isTouched]}
+                  errors={errors}
+                  dirty={isDirty}
+                />
+              </Stack>
+            </Stack>
+          );
+        }
         return (
           <Stack className={rest.className}>
             <Dropdown
@@ -269,7 +285,7 @@ export default function Raw(props: any): ReactElement {
                   _: number
                 ) => ({ key: optValue, text, disabled })
               )}
-              {...rest}
+              {...selectRest}
             >
               {}
             </Dropdown>
@@ -282,6 +298,7 @@ export default function Raw(props: any): ReactElement {
             </Stack>
           </Stack>
         );
+      }
       case 'multi-select': {
         // rest.searchable: true adds a filter box at the top of the menu, to
         // narrow a long list. Destructured out so it never reaches the
@@ -623,34 +640,26 @@ export default function Raw(props: any): ReactElement {
             </Stack>
           </Stack>
         );
-      case 'combobox':
+      // Type-ahead over `options`, with free text. The value is the chosen
+      // option's key; the box shows that option's text. rest.create
+      // ((text) => Promise<key>) makes it pick-or-create, rest.createLabel
+      // names the create row. All of it lives in ComboBoxField.
+      case 'combobox': {
+        const { create, createLabel, ...comboRest } = rest;
         return (
-          <Stack>
-            <ComboBox
-              {...comboBoxMenuProps}
+          <Stack className={rest.className}>
+            <ComboBoxField
               label={label}
-              allowFreeform
-              autoComplete={'on'}
-              text={value}              // ← use text instead of selectedKey for freeform
-              selectedKey={             // ← only set key if value matches an option
-                options.find((o: any) => o.value === value)?.value ?? null
-              }
-              onChange={(_: any, option: any, _index: any, freeformValue?: string) => {
-                if (option) {
-                  onChange(name, option.key);
-                } else if (freeformValue !== undefined) {
-                  onChange(name, freeformValue);
-                }
-              }}
+              value={value}
+              onChange={(v: any) => onChange(name, v)}
               onFocus={handleFocus}
               placeholder={placeholder}
+              create={create}
+              createLabel={createLabel}
               options={options.map(
-                (
-                  { text, value: optValue }: { text: string; value: any },
-                  _: number
-                ) => ({ key: optValue, text, value: optValue })
+                ({ text, value: optValue }: { text: string; value: any }) => ({ key: optValue, text })
               )}
-              {...rest}
+              {...comboRest}
             />
             <Stack className={style.errors}>
               <Feedback
@@ -661,6 +670,7 @@ export default function Raw(props: any): ReactElement {
             </Stack>
           </Stack>
         );
+      }
       case 'timetoday':
         for (i = 0; i < 60; i++) {
           i === 0 && hours.push({ key: i, text: '12' });
@@ -771,6 +781,10 @@ export default function Raw(props: any): ReactElement {
                 onPointerUp={rest.onDeactivate}
                 style={{
                   flex: 1,
+                  // A range input's intrinsic width (~130px) is otherwise its
+                  // minimum: in a narrow column (a list row's share) it pushed
+                  // the number box out of the column or crushed it.
+                  minWidth: 0,
                   accentColor: theme.palette.themePrimary,
                   cursor: rest.disabled ? 'default' : 'pointer',
                   height: 20,
@@ -800,7 +814,8 @@ export default function Raw(props: any): ReactElement {
                   }
                 }}
                 styles={{
-                  root: { width: 60 },
+                  // Never shrinks: the slider gives way instead.
+                  root: { width: 60, flexShrink: 0 },
                   fieldGroup: { height: 24 },
                   field: { textAlign: 'right', padding: '0 6px', fontSize: '0.85em' },
                 }}

@@ -3,7 +3,7 @@ import { Stack, IconButton, getTheme } from './lib';
 import List from './List';
 import CardList from './CardList';
 import Links from './Links';
-import { IDispatcher, ListSchema, IComponents, Name } from '../typical-admin';
+import { IDispatcher, ListSchema, IComponents, Name, ITALabels, label, resolveLabels } from '../typical-admin';
 import { ColumnVisibilityStore } from './lib/columnVisibilityStore';
 
 type ViewMode = 'list' | 'card';
@@ -45,6 +45,8 @@ interface Props {
   storageKey?: string;
   columnVisibilityStore?: ColumnVisibilityStore;
   alwaysVisibleColumns?: string[];
+  // Display text (heading, delete button); see typical-admin's labels.ts.
+  labels?: ITALabels;
 }
 
 // Drop-in for ReactiveAdmin's `list` slot (same contract as List.tsx/CardList.tsx)
@@ -72,6 +74,7 @@ const SwitchableList: React.FC<Props> = ({
   storageKey,
   columnVisibilityStore,
   alwaysVisibleColumns,
+  labels,
 }) => {
   const theme = getTheme();
   const [view, setView] = useState<ViewMode>(() => readStoredView(name, defaultView));
@@ -84,7 +87,7 @@ const SwitchableList: React.FC<Props> = ({
   return (
     <Stack>
       <Stack horizontal horizontalAlign="space-between" verticalAlign="center">
-        <h3>Listing {name.plural}</h3>
+        <h3>{label(resolveLabels(name, labels), 'listHeading')}</h3>
         <Stack horizontal verticalAlign="center" tokens={{ childrenGap: 4 }}>
           <IconButton
             iconProps={{ iconName: 'BulletedList' }}
@@ -106,6 +109,7 @@ const SwitchableList: React.FC<Props> = ({
               name,
               dispatcher,
               hideAdd: view === 'list' && !!schemaDefinition.buttons?.add,
+              labels,
             })
           ) : (
             <Links
@@ -114,6 +118,7 @@ const SwitchableList: React.FC<Props> = ({
               // Table view renders its own Add in the grid toolbar;
               // card view has no toolbar, so it keeps this one.
               hideAdd={view === 'list' && !!schemaDefinition.buttons?.add}
+              labels={labels}
             />
           )}
         </Stack>
@@ -134,6 +139,7 @@ const SwitchableList: React.FC<Props> = ({
           thumbnailHeight={thumbnailHeight}
           thumbnailFit={thumbnailFit}
           cardActions={cardActions}
+          labels={labels}
           hideHeader
         />
       ) : (
@@ -150,6 +156,7 @@ const SwitchableList: React.FC<Props> = ({
           storageKey={storageKey}
           columnVisibilityStore={columnVisibilityStore}
           alwaysVisibleColumns={alwaysVisibleColumns}
+          labels={labels}
         />
       )}
     </Stack>

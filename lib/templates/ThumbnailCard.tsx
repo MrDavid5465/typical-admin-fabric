@@ -1,6 +1,9 @@
 import React from 'react';
 import { Stack, getTheme } from '@fluentui/react';
 
+export const THUMBNAIL_CARD_WIDTH = 280;
+export const THUMBNAIL_CARD_HEIGHT = 175;
+
 interface ThumbnailCardProps {
   width?: number;
   thumbnailHeight?: number;
@@ -27,6 +30,10 @@ interface ThumbnailCardProps {
   onThumbnailClick?: () => void;
   // Custom thumbnail content (e.g. a live canvas preview) — takes priority over thumbnailUrl.
   children?: React.ReactNode;
+  // Fill the parent's width (e.g. a grid cell, see CardList) instead of
+  // sitting at the fixed `width`; the thumbnail scales with it, keeping the
+  // width:thumbnailHeight aspect ratio, so its fit/crop is unchanged.
+  fluid?: boolean;
 }
 
 // Shared card shell for the "box, header row with title + actions, thumbnail
@@ -34,8 +41,8 @@ interface ThumbnailCardProps {
 // Consolidating it means a fix or restyle here reaches every card that uses
 // it, instead of drifting out of sync between copies.
 const ThumbnailCard: React.FC<ThumbnailCardProps> = ({
-  width = 280,
-  thumbnailHeight = 175,
+  width = THUMBNAIL_CARD_WIDTH,
+  thumbnailHeight = THUMBNAIL_CARD_HEIGHT,
   titlePrefix,
   title,
   actions,
@@ -45,14 +52,18 @@ const ThumbnailCard: React.FC<ThumbnailCardProps> = ({
   onThumbnailClick,
   children,
   fit = 'cover',
+  fluid,
 }) => {
   const theme = getTheme();
   const hasContent = !!children || !!thumbnailUrl;
+  const thumbnailSize = fluid
+    ? { aspectRatio: `${width} / ${thumbnailHeight}` }
+    : { height: thumbnailHeight };
 
   return (
     <Stack
       style={{
-        width,
+        width: fluid ? '100%' : width,
         overflow: 'hidden',
         // Same accent-line + shadow signature as FormCard, its sibling in
         // this folder — square corners to match, not rounded.
@@ -87,7 +98,7 @@ const ThumbnailCard: React.FC<ThumbnailCardProps> = ({
         onClick={onThumbnailClick}
         style={{
           width: '100%',
-          height: thumbnailHeight,
+          ...thumbnailSize,
           position: 'relative',
           overflow: 'hidden',
           background: thumbnailUrl

@@ -1,7 +1,7 @@
 import React from 'react';
 import { Stack, useQuery, useNavigate, useLocation, WideCard } from './lib';
 import Links from './Links';
-import { IDispatcher, DisplaySchema, IComponents, Name } from '../typical-admin';
+import { IDispatcher, DisplaySchema, IComponents, Name, ITALabels, label, resolveLabels } from '../typical-admin';
 import Subscriber from '../typical-admin/Subscriber';
 
 interface Props {
@@ -25,6 +25,8 @@ interface Props {
   // Schema key holding an image URL for the card's photo. Omit for a
   // text-only card.
   thumbnailField?: string;
+  // Display text (heading, delete button); see typical-admin's labels.ts.
+  labels?: ITALabels;
 }
 
 // Drop-in for ReactiveAdmin's `list` slot (same contract as List.tsx/
@@ -44,7 +46,9 @@ const WideList: React.FC<Props> = ({
   titleField,
   secondaryField,
   thumbnailField,
+  labels,
 }) => {
+  const l = resolveLabels(name, labels);
   const { pathname } = useLocation();
   const navigate = useNavigate();
   const queryName = queryResultKey ?? `get${name.plural}`;
@@ -54,7 +58,11 @@ const WideList: React.FC<Props> = ({
   if (error) {
     return <span>{`error: ${error}`}</span>;
   }
-  if (loading) {
+  // Only before the first result, as in List: Apollo Client 4 sets
+  // `loading` during a refetch too (a live event, a save elsewhere), and
+  // returning here then unmounted every card and rebuilt the grid, its
+  // thumbnails reloading, on each one.
+  if (loading && !data) {
     return <span>{`loading...`}</span>;
   }
 
@@ -73,11 +81,11 @@ const WideList: React.FC<Props> = ({
       )}
       {!hideHeader && (
         <Stack horizontal horizontalAlign="space-between" verticalAlign="center">
-          <h3>Listing {name.plural}</h3>
+          <h3>{label(l, 'listHeading')}</h3>
           {components?.links ? (
-            React.createElement(components.links, { name, dispatcher })
+            React.createElement(components.links, { name, dispatcher, labels })
           ) : (
-            <Links name={name} dispatcher={dispatcher} />
+            <Links name={name} dispatcher={dispatcher} labels={labels} />
           )}
         </Stack>
       )}
@@ -110,7 +118,7 @@ const WideList: React.FC<Props> = ({
       })}
 
       {items.length === 0 && (
-        <span style={{ opacity: 0.6, padding: '1em 0' }}>No {name.plural.toLowerCase()} yet.</span>
+        <span style={{ opacity: 0.6, padding: '1em 0' }}>No {l.plural.toLowerCase()} yet.</span>
       )}
     </Stack>
   );

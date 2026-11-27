@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
+import { mergeStyles } from '@fluentui/react';
 import { Stack, IconButton, Icon, getTheme, ThumbnailCard, useQuery, useMutation, useNavigate, useLocation } from './lib';
+import { THUMBNAIL_CARD_WIDTH } from './lib/templates/ThumbnailCard';
 import Links from './Links';
-import { IDispatcher, DisplaySchema, IComponents, Name } from '../typical-admin';
+import { IDispatcher, DisplaySchema, IComponents, Name, ITALabels, ResolvedLabels, label, resolveLabels } from '../typical-admin';
 import Subscriber from '../typical-admin/Subscriber';
-import { confirmAsync } from '../denim/components/ConfirmDialog';
+import { confirmAsync } from './ConfirmDialog';
 
 interface Props {
   dispatcher: IDispatcher;
@@ -53,24 +55,42 @@ interface Props {
   // stopping propagation if their control shouldn't also trigger the card's
   // navigation.
   cardActions?: (item: any) => React.ReactNode;
+  // Display text (heading, delete button); see typical-admin's labels.ts.
+  labels?: ITALabels;
 }
+
+const CARD_GAP = 16;
+
+// The card grid: as many columns of at least `cardWidth` as fit the grid's
+// own width (minimum one), then stretched evenly so each row spans it —
+// the same column count a fixed-width wrap gives, without the leftover strip
+// on the right. auto-fill keeps empty tracks, so a short last row keeps the
+// full rows' card width. Sized by the container, not the window, so a list
+// in a narrow pane behaves like one on a narrow screen; on a phone it's one
+// full-width column. min(..., 100%) lets that one column shrink below
+// cardWidth instead of overflowing.
+const gridClass = (cardWidth: number) => mergeStyles({
+  display: 'grid',
+  gridTemplateColumns: `repeat(auto-fill, minmax(min(${cardWidth}px, 100%), 1fr))`,
+  gap: CARD_GAP,
+});
 
 // Only mounted when dispatcher.delete exists — useMutation must never be
 // called with an undefined document, so the mutation lives in a component
 // that's conditionally *rendered*, not conditionally *invoked*, mirroring how
 // Show.tsx only ever mounts the standalone Delete.tsx when dispatcher.delete
 // is set rather than guarding a hook call inline.
-const CardDeleteButton: React.FC<{ dispatcher: IDispatcher; name: Name; item: any }> = ({ dispatcher, name, item }) => {
+const CardDeleteButton: React.FC<{ dispatcher: IDispatcher; labels: ResolvedLabels; item: any }> = ({ dispatcher, labels, item }) => {
   const [removeItem] = useMutation(dispatcher.delete, {
     refetchQueries: [{ query: dispatcher.list }],
   });
   return (
     <IconButton
       iconProps={{ iconName: 'Delete' }}
-      title={`Delete ${name.singular}`}
+      title={label(labels, 'deleteTitle')}
       onClick={async (e) => {
         e.stopPropagation();
-        if (!(await confirmAsync(`Delete this ${name.singular}? This cannot be undone.`, { danger: true }))) return;
+        if (!(await confirmAsync(label(labels, 'deleteConfirm'), { danger: true }))) return;
         removeItem({ variables: { id: item.id } });
       }}
     />
@@ -98,8 +118,10 @@ const CardList: React.FC<Props> = ({
   idField,
   basePath,
   cardActions,
+  labels,
 }) => {
   const theme = getTheme();
+  const l = resolveLabels(name, labels);
   const { pathname } = useLocation();
   const navigate = useNavigate();
   const routeBase = basePath ?? pathname;
@@ -111,7 +133,11 @@ const CardList: React.FC<Props> = ({
   if (error) {
     return <span>{`error: ${error}`}</span>;
   }
-  if (loading) {
+  // Only before the first result, as in List: Apollo Client 4 sets
+  // `loading` during a refetch too (a live event, a save elsewhere), and
+  // returning here then unmounted every card and rebuilt the grid, its
+  // thumbnails reloading, on each one.
+  if (loading && !data) {
     return <span>{`loading...`}</span>;
   }
 
@@ -142,16 +168,16 @@ const CardList: React.FC<Props> = ({
       )}
       {!hideHeader && (
         <Stack horizontal horizontalAlign="space-between" verticalAlign="center">
-          <h3>Listing {name.plural}</h3>
+          <h3>{label(l, 'listHeading')}</h3>
           {components?.links ? (
-            React.createElement(components.links, { name, dispatcher })
+            React.createElement(components.links, { name, dispatcher, labels })
           ) : (
-            <Links name={name} dispatcher={dispatcher} />
+            <Links name={name} dispatcher={dispatcher} labels={labels} />
           )}
         </Stack>
       )}
 
-      <Stack horizontal wrap tokens={{ childrenGap: 16 }}>
+      <div className={gridClass(cardWidth ?? THUMBNAIL_CARD_WIDTH)}>
         {pageItems.map((item) => {
           const title = titleSchema?.onRender
             ? titleSchema.onRender({ value: item[titleField], values: item })
@@ -168,6 +194,7 @@ const CardList: React.FC<Props> = ({
               width={cardWidth}
               thumbnailHeight={thumbnailHeight}
               fit={thumbnailFit}
+              fluid
               title={String(title ?? '')}
               thumbnailUrl={thumbnailUrl}
               onThumbnailClick={() => navigate(`${routeBase}/${routeId}/show`)}
@@ -178,21 +205,21 @@ const CardList: React.FC<Props> = ({
                     {dispatcher.edit && (
                       <IconButton
                         iconProps={{ iconName: 'Settings' }}
-                        title={`Edit ${name.singular}`}
+                        title={`Edit ${l.singular}`}
                         onClick={(e) => { e.stopPropagation(); navigate(`${routeBase}/${routeId}/edit`); }}
                       />
                     )}
-                    {dispatcher.delete && <CardDeleteButton dispatcher={dispatcher} name={name} item={item} />}
+                    {dispatcher.delete && <CardDeleteButton dispatcher={dispatcher} labels={l} item={item} />}
                   </>
                 ) : undefined
               }
             />
           );
         })}
-      </Stack>
+      </div>
 
       {pageItems.length === 0 && (
-        <span style={{ opacity: 0.6, padding: '1em 0' }}>No {name.plural.toLowerCase()} yet.</span>
+        <span style={{ opacity: 0.6, padding: '1em 0' }}>No {l.plural.toLowerCase()} yet.</span>
       )}
 
       {pageSize && items.length > pageSize && (
